@@ -14,8 +14,9 @@ main file. This file contains the main function of smash
 #define MAXARGS 20
 
 char* L_Fg_Cmd;
-void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
-char lineSize[MAX_LINE_SIZE]; 
+//void* jobs = NULL; //This represents the list of jobs. Please change to a preferred type (e.g array of char*)
+std::vector<Job_class> jobs;//[100];
+char lineSize[MAX_LINE_SIZE];
 //**************************************************************************************
 // function name: main
 // Description: main function of smash. get command from user and calls command functions
@@ -53,10 +54,13 @@ int main(int argc, char *argv[])
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
 					// perform a complicated Command
+                    // start by searching string in the word, after that try to run it
 		if(!ExeComp(lineSize)) continue; 
-					// background command	
+					// background command
+                    // background are the jobs commands
 	 	if(!BgCmd(lineSize, jobs)) continue; 
 					// built in commands
+                    // need to understand what is the rational here because Exe is already in cmd
 		ExeCmd(jobs, lineSize, cmdString);
 		
 		/* initialize for next line read*/
