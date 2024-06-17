@@ -7,11 +7,15 @@
 // Parameters: pointer to jobs, command string
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
-int ExeCmd(std::vector<Job_class> jobs, char* lineSize, char* cmdString)
+using namespace std;
+char previous_pwd[MAX_LINE_SIZE] = "";
+int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 {
+    //TODO: cmd string == linesize at first, why? - for build in there is format
+    // for not build in we need to think..
 	char* cmd; 
 	char* args[MAX_ARG];
-	char pwd[MAX_LINE_SIZE] = {'\0'}; //mine
+    char pwd[MAX_LINE_SIZE] = ""; //mine
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
     bool illegal_cmd = false; // illegal command
@@ -45,19 +49,15 @@ int ExeCmd(std::vector<Job_class> jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "pwd"))
     {
-//        char pwd_for_pwd_cmd[MAX_LINE_SIZE];
-        getcwd(pwd,MAX_LINE_SIZE);
-        printf("%s/smash\n",pwd);
+        if(getcwd(pwd,MAX_LINE_SIZE) != NULL){
+            printf("%s/smash\n",pwd);
+        }
         // #TODO: is smash appropriate name or we should do something else? + error handling
     }
 
     /*************************************************/
     else if (!strcmp(cmd, "cd") )
 	{
-        //TODO: 0 args / invalid new location
-//        if (num_arg == 0){
-//            printf("wrong params amount\n");
-//        }
         if (num_arg>1){
 
             strcpy(cmdString, "too many arguments");
@@ -66,41 +66,86 @@ int ExeCmd(std::vector<Job_class> jobs, char* lineSize, char* cmdString)
         }
         //TODO: how to remember last location after moving out the function (save it somewhere on the comp? or in jobs)
         else if (strcmp(args[1], "-") == 0 ){
-            printf("pwd is: %s\n",pwd);
-            if(pwd[0] == NULL){
+            printf("pwd is: %s\n",previous_pwd);
+            if(previous_pwd[0] == NULL){
                 strcpy(cmdString, "cd: OLDPWD not set");
                 illegal_cmd = true;
 //                printf("%s","smash error: cd: OLDPWD not set\n");
             }
             else{
-                chdir(pwd);
+                if(chdir(previous_pwd) ==-1){
+                    strcpy(cmdString, "chdir: No such file or directory");
+                    illegal_cmd = true;
+                }
             }
 
         }
         else {
-
             char tmp_prev_pwd[MAX_LINE_SIZE];
             getcwd(tmp_prev_pwd,MAX_LINE_SIZE);
-            strcpy(pwd, tmp_prev_pwd);
+            strcpy(previous_pwd, tmp_prev_pwd);
 //            printf("last location is now: %s\n",pwd);
-            chdir(args[1]);
+            if(chdir(args[1]) ==-1){
+                strcpy(cmdString, "chdir: No such file or directory");
+                illegal_cmd = true;
+            }
+
         }
 
 	}
     /*************************************************/
     else if (!strcmp(cmd, "jobs"))
     {
+//        std::vector<Job_class> other_jobs = create_jobs_from_other(jobs);
+        sort_jobs(jobs);
+        print_jobs(jobs);
 
-        int size = jobs.size();
-
-        for (int i = 0; i < size; i++) {
-            printf("%s\n", "entered jobs");
-            jobs[i].show_job();
-        }
     }
     /*************************************************/
     else if (!strcmp(cmd, "kill"))
     {
+//        int job_id_tmp = 99;
+//        int pID_tmp = 99;
+//        Job_class j = Job_class(job_id_tmp, pID_tmp, cmdString, '&', "Background");
+//        jobs.push_back(j);
+
+        char* signal_arg = args[1];
+        char* job_arg = args[2];
+        int signal_number, job_number;
+
+        if(signal_arg[0] == '-'){
+            signal_arg[0] = ' ';
+            signal_number = atoi(signal_arg);
+        }
+        else{
+            strcpy(cmdString, "kill: invalid arguments");
+            illegal_cmd = true;
+        }
+        if((signal_number<0) || (signal_number>32)){
+            strcpy(cmdString, "kill: invalid arguments");
+            illegal_cmd = true;
+        }
+
+
+        else {
+
+            job_number = atoi(job_arg);
+            int pid = get_pid_for_job_number(jobs, job_number);
+
+            if (pid == -1){
+                std::ostringstream oss;
+                oss << "kill: job-id " << job_number << " does not exist";
+                std::string err = oss.str();
+                strcpy(cmdString, err.c_str());
+                illegal_cmd = true;
+            }
+            else{
+                printf("%s%d", "sending signal to process \n", pid);
+            }
+
+        }
+
+
 
     }
     /*************************************************/
@@ -133,12 +178,12 @@ int ExeCmd(std::vector<Job_class> jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else // external command
 	{
- 		ExeExternal(args, cmdString);
+ 		ExeExternal(args, cmdString, num_arg, jobs);
 	 	return 0;
 	}
 	if (illegal_cmd == true)
 	{
-		printf("smash error: > \"%s\"\n", cmdString);
+		printf("smash error: %s\n", cmdString);
 		return 1;
 	}
     return 0;
@@ -149,34 +194,64 @@ int ExeCmd(std::vector<Job_class> jobs, char* lineSize, char* cmdString)
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString)
+void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<Job_class>& jobs)
 {
-	int pID;
-    	switch(pID = fork()) 
+
+    bool background_process = false;
+    if (num_arg>0){
+        //check if background process
+        char* last_arg = args[num_arg];
+        if (strcmp(last_arg, "&") == 0){
+            args[num_arg] = NULL;
+            num_arg--;
+            background_process = true;
+        }
+        else if (last_arg[strlen(last_arg) - 1] == '&'){
+            last_arg[strlen(last_arg) - 1] = '\0';
+            background_process = true;
+        }
+    }
+
+    pid_t pID;
+        switch(pID = fork())
 	{
-    		case -1: 
-					// Add your code here (error)
-					
-					/* 
-					your code
-					*/
+    		case -1:
+                // Add your code here (error)
+                std::cerr << "Fork failed!" << std::endl;
+                exit(1);
+
         	case 0 :
                 	// Child Process
                		setpgrp();
 					
 			        // Add your code here (execute an external command)
-					
-					/* 
-					your code
-					*/
+                    //TODO: we need to check here if to split
+                    printf("%s -> %s",args[0],args[1]);
+                    if(execvp(args[0], args)<0){
+                        cerr<<"smash error: execvp failed"<<endl;
+                        exit(1);
+                    }
+                    std::cout << "Hello from the child process! PID: " << getpid() << std::endl;
 			
 			default:
-                	// Add your code here
-					printf("");
-					/*
 
-					your code
-					*/
+                	// Add your code here
+                    int job_id = next_job_id(jobs);
+                    if(background_process){
+                        Job_class j = Job_class(job_id, pID, cmdString, '&', "Background");
+                        jobs.push_back(j);
+                        printf("size of jobs now:%d\n",jobs.size());
+                        return;
+                    }
+                    else{
+                        int process_status = 0;
+                        Job_class j = Job_class(job_id, pID, cmdString, '0', "Foreground");
+                        waitpid(pID, &process_status, WUNTRACED);
+                        j = Job_class();
+                        return;
+                    }
+
+
 	}
 }
 //**************************************************************************************
@@ -205,7 +280,7 @@ int ExeComp(char* lineSize)
 // Parameters: command string, pointer to jobs
 // Returns: 0- BG command -1- if not
 //**************************************************************************************
-int BgCmd(char* lineSize, std::vector<Job_class> jobs)
+int BgCmd(char* lineSize, std::vector<Job_class>& jobs)
 {
 	char* Command;
 	char* delimiters = " \t\n";
@@ -222,21 +297,30 @@ int BgCmd(char* lineSize, std::vector<Job_class> jobs)
         if (childPid < 0) {
             // fork() failed
             std::cerr << "Fork failed!" << std::endl;
-            return 1;
+            exit(1);
+//            return 1;
         }
         else if(childPid == 0) {
+            setpgrp(); // set the process group ID of the child process
+            if(execvp(args[0], args)<0){
+                cerr<<"smash error: execvp failed"<<endl;
+                return 1;
+            }
             std::cout << "Hello from the child process! PID: " << getpid() << std::endl;
 
-            int job_id = 1;
-//            std::string status = "Background";
-//            Job_class* j = new Job_class(job_id, getpid(), lineSize, '&', "Background");
-            jobs.push_back(Job_class(job_id, getpid(), lineSize, '&', "Background"));
-            jobs[0].show_job();
+
         } else {
+//            int job_id = next_job_id(jobs);
 //
+//            Job_class j = Job_class(job_id, childPid, lineSize, '&', "Background");
+//            jobs.push_back(j);
+//
+//            printf("size of jobs now:%d\n",jobs.size());
+            return 0;
+            //
 //            wait(NULL);
 //            sleep(5);
-            std::cout << "Hello from the parent process! PID: " << getpid() << " moving on not waiting" << std::endl;
+//            std::cout << "Hello from the parent process! PID: " << getpid() << " moving on not waiting" << std::endl;
 
         }
 
