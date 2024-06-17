@@ -7,12 +7,18 @@
 #include <string>
 #include <time.h>
 #include <iostream>
+#include <unistd.h>
+#include <stdio.h>
+#include <vector>
+#include <algorithm>
 
-//enum Estatus { Stopped , Foreground, Background };
 class Job_class {
     public:
+        Job_class();
         Job_class(int job_id, int process_id, const std::string& command, char running_method, const std::string& status);
+        Job_class(const Job_class& other);
         int get_job_id();
+        int get_process_id();
         void show_job();
         ~Job_class();
         bool compare_jobs(const Job_class& other);
@@ -25,7 +31,12 @@ class Job_class {
         std::string status;
         char running_method;
 };
-//        time(time_t *_Nullable tloc)
+
+int next_job_id(std::vector<Job_class>& jobs);
+void sort_jobs(std::vector<Job_class>& jobs);
+void print_jobs(std::vector<Job_class>& jobs);
+int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id);
+std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);
 
 //TODO: maybe we should also have jobs array which include the sort function (maybe it is overkill..
 
