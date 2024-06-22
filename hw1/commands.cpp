@@ -108,42 +108,43 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 //        int pID_tmp = 99;
 //        Job_class j = Job_class(job_id_tmp, pID_tmp, cmdString, '&', "Background");
 //        jobs.push_back(j);
+        if ((num_arg < 2) || (num_arg > 2)){
+            printf("smash error: %s\n", "kill: invalid arguments");
+            return 1;
+        }
 
-        char* signal_arg = args[1];
-        char* job_arg = args[2];
+        char *signal_arg = args[1];
+        char *job_arg = args[2];
         int signal_number, job_number;
 
-        if(signal_arg[0] == '-'){
+        if (signal_arg[0] == '-') {
             signal_arg[0] = ' ';
             signal_number = atoi(signal_arg);
-        }
-        else{
-            strcpy(cmdString, "kill: invalid arguments");
-            illegal_cmd = true;
-        }
-        if((signal_number<0) || (signal_number>32)){
-            strcpy(cmdString, "kill: invalid arguments");
-            illegal_cmd = true;
+        } else {
+            printf("smash error: %s\n", "kill: invalid arguments");
+            return 1;
         }
 
-
-        else {
+        if ((signal_number < 0) || (signal_number > 32)) {
+            printf("smash error: %s\n", "kill: invalid arguments");
+            return 1;
+        } else {
 
             job_number = atoi(job_arg);
             int pid = get_pid_for_job_number(jobs, job_number);
 
-            if (pid == -1){
+            if (pid == -1) {
                 std::ostringstream oss;
                 oss << "kill: job-id " << job_number << " does not exist";
                 std::string err = oss.str();
                 strcpy(cmdString, err.c_str());
                 illegal_cmd = true;
-            }
-            else{
+            } else {
                 printf("%s%d", "sending signal to process \n", pid);
             }
 
         }
+
 
 
 
@@ -166,14 +167,63 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "diff"))
     {
+        size_t maxSize;
+        bool are_files_equal = true;
+        char* file1 = args[1];
+        char* file2 = args[2];
+        std::cout << "file1 : " << file1 << "file2 : " << file2 << std::endl;
+        std::ifstream file1_content(file1);
+        std::ifstream file2_content(file2);
+        if (num_arg > 2){
+            strcpy(cmdString, "diff: invalid arguments");
+            illegal_cmd = true;
+
+        }
+        else if (!file1_content.good() || !file2_content.good()){
+            strcpy(cmdString, "diff: files status is wrong- invalid arguments or file open");
+            illegal_cmd = true;
+        }
+        else{
+            string line_file1, line_file2;
+            bool equal_files = true;
+            while (equal_files && getline(file1_content,line_file1) && getline(file2_content,line_file2)){
+                if (line_file1 != line_file2){
+                    equal_files = false;
+                }
+            }
+            if (getline(file1_content,line_file1) || getline(file2_content,line_file2)){
+                equal_files = false;
+            }
+            file1_content.close();
+            file2_content.close();
+            if (equal_files){
+                printf("0\n");
+                return 0;
+            }
+            else{
+                printf("1\n");
+                return 1;
+            }
+
+        }
+
+
+        //first try
+//        std::vector<std::string> file1_content = readFile(file1);
+//        std::vector<std::string> file2_content = readFile(file2);
+//        if (file1_content == NULL or file2_content == NULL){
+//            return false;
+//        }
+//        file1_content.size() <=file2_content.size() ? maxSize = file1_content.size() : maxSize = file2_content.size();
+//        std::cout << "max size : " << maxSize << std::endl;
+//        for (size_t x = 0; x < maxSize; ++x){
+//            if (file1_content[x] != file2_content[x])
+//                std::cout << "this line is not the same : " << file1_content[x] << std::endl;
+//                are_files_equal = false;
+//        }
+//        return are_files_equal;
 
     }
-    /*************************************************/
-    //TODO: there is no mkdir in the file
-	else if (!strcmp(cmd, "mkdir"))
-	{
- 		
-	}
 
 	/*************************************************/
 	else // external command
@@ -254,80 +304,38 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
 
 	}
 }
-//**************************************************************************************
-// function name: ExeComp
-// Description: executes complicated command
-// Parameters: command string
-// Returns: 0- if complicated -1- if not
-//**************************************************************************************
-int ExeComp(char* lineSize)
-{
-	char ExtCmd[MAX_LINE_SIZE+2];
-	char *args[MAX_ARG];
-    if ((strstr(lineSize, "|")) || (strstr(lineSize, "<")) || (strstr(lineSize, ">")) || (strstr(lineSize, "*")) || (strstr(lineSize, "?")) || (strstr(lineSize, ">>")) || (strstr(lineSize, "|&")))
-    {
-		// Add your code here (execute a complicated command)
-					
-		/* 
-		your code
-		*/
-	} 
-	return -1;
-}
-//**************************************************************************************
-// function name: BgCmd
-// Description: if command is in background, insert the command to jobs
-// Parameters: command string, pointer to jobs
-// Returns: 0- BG command -1- if not
-//**************************************************************************************
-int BgCmd(char* lineSize, std::vector<Job_class>& jobs)
-{
-	char* Command;
-	char* delimiters = " \t\n";
-	char *args[MAX_ARG];
 
-//    printf("linesize is - %s %c",lineSize, lineSize[strlen(lineSize)-2]);//mine
-	if (lineSize[strlen(lineSize)-2] == '&')
-	{
-		lineSize[strlen(lineSize)-2] = '\0';
-		// Add your code here (execute a in the background)
-
-        pid_t childPid = fork();
-
-        if (childPid < 0) {
-            // fork() failed
-            std::cerr << "Fork failed!" << std::endl;
-            exit(1);
-//            return 1;
-        }
-        else if(childPid == 0) {
-            setpgrp(); // set the process group ID of the child process
-            if(execvp(args[0], args)<0){
-                cerr<<"smash error: execvp failed"<<endl;
-                return 1;
-            }
-            std::cout << "Hello from the child process! PID: " << getpid() << std::endl;
-
-
-        } else {
-//            int job_id = next_job_id(jobs);
+//std::vector<std::string> readFile(std::string myFile){
+//    std::vector<std::string> log;
+//    std::string buffer;
+//    std::string b;
+//    std::ifstream input_file(myFile);
+//    int o = 1;
+//    if (!input_file.is_open())
+//    {
+//        std::cout << "Could not open the file " << myFile << std::endl;
+////        exit(EXIT_FAILURE);
+//        return log;
+//    }
 //
-//            Job_class j = Job_class(job_id, childPid, lineSize, '&', "Background");
-//            jobs.push_back(j);
+//    while (input_file >> buffer)
+//    {
+//        if (o > 2)
+//        {
+//            log.push_back(b);
+//            o = 0;
+//            b.erase();
+//        }
+//        else {
+//            b.append(buffer);
+//            b.append(" ");
+//            ++o;
+//        }
+//    }
 //
-//            printf("size of jobs now:%d\n",jobs.size());
-            return 0;
-            //
-//            wait(NULL);
-//            sleep(5);
-//            std::cout << "Hello from the parent process! PID: " << getpid() << " moving on not waiting" << std::endl;
-
-        }
-
-
-    }
-	return -1;
-}
+//    input_file.close();
+//    return log;
+//}
 
 //struct job(){
 //    int/string job_id
