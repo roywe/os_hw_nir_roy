@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <vector>
 #include <algorithm>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <algorithm>
 
 class Job_class {
     public:
@@ -23,7 +26,7 @@ class Job_class {
         ~Job_class();
         bool compare_jobs(const Job_class& other);
 
-    private:
+    public:
         int job_id;
         int process_id;
         std::string command;
@@ -34,6 +37,7 @@ class Job_class {
 
 int next_job_id(std::vector<Job_class>& jobs);
 void sort_jobs(std::vector<Job_class>& jobs);
+void clean_jobs(std::vector<Job_class>& jobs);
 void print_jobs(std::vector<Job_class>& jobs);
 int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id);
 std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);

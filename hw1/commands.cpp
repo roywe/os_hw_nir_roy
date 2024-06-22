@@ -96,6 +96,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "jobs"))
     {
+    	clean_jobs(jobs);
 //        std::vector<Job_class> other_jobs = create_jobs_from_other(jobs);
         sort_jobs(jobs);
         print_jobs(jobs);
@@ -161,7 +162,8 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "quit"))
     {
-
+    	cout << " its killing time" << endl;
+    	exit(0);
     }
     /*************************************************/
     else if (!strcmp(cmd, "diff"))
@@ -246,6 +248,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
                     else{
                         int process_status = 0;
                         Job_class j = Job_class(job_id, pID, cmdString, '0', "Foreground");
+                        fg_job = j;
                         waitpid(pID, &process_status, WUNTRACED);
                         j = Job_class();
                         return;

@@ -5,7 +5,7 @@
 #include "job_class.h"
 #include <string.h>
 #include <stdio.h>
-
+using namespace std;
 //Job_class::Job_class(){
 //
 //}
@@ -80,6 +80,20 @@ int next_job_id(std::vector<Job_class>& jobs){
         return max_job_id+1;
     }
 
+}
+
+void clean_jobs(std::vector<Job_class>& jobs){
+    for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
+    	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
+
+        cout << it->process_id << " result is " << result <<endl;
+        if (result){
+        	it = jobs.erase(it);
+        }
+        else {
+        	++it;
+        }
+    }
 }
 
 bool compare_jobs(Job_class& job1,Job_class& job2){
