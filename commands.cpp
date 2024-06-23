@@ -96,6 +96,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "jobs"))
     {
+    	clean_jobs(jobs);
 //        std::vector<Job_class> other_jobs = create_jobs_from_other(jobs);
         sort_jobs(jobs);
         print_jobs(jobs);
@@ -161,8 +162,16 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "quit"))
     {
+
+    	if((num_arg >0 )&& (!strcmp (args[1], "kill"))){
+    	remove_jobs(jobs);
+
+    	}
+    	else{
     	cout << " its killing time" << endl;
+        std::vector<Job_class>().swap(jobs); // releasing memory
     	exit(0);
+    	}
     }
     /*************************************************/
     else if (!strcmp(cmd, "diff"))
