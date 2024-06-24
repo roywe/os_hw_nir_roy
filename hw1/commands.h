@@ -13,8 +13,8 @@
 #include <vector>
 #include <ctype.h>
 #include <sstream>
+#include "smash.h"
 #include <fstream>
-#include <iostream>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString);

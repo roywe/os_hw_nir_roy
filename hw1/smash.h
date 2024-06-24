@@ -18,6 +18,7 @@
 #define MAXARGS 20
 
 extern char* L_Fg_Cmd;
+extern Job_class fg_job;
 extern std::vector<Job_class> jobs;
 
 extern char lineSize[MAX_LINE_SIZE];
