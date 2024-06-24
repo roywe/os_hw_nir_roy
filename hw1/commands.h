@@ -13,11 +13,12 @@
 #include <vector>
 #include <ctype.h>
 #include <sstream>
+#include <fstream>
+#include <iostream>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
-int ExeComp(char* lineSize);
-int BgCmd(char* lineSize, std::vector<Job_class>& jobs);
 int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<Job_class>& jobs);
+std::vector<std::string> readFile(std::string myFile);
 #endif
 
