@@ -14,7 +14,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <algorithm>
-
+#include <errno.h>
 class Job_class {
     public:
         Job_class();
@@ -38,6 +38,7 @@ class Job_class {
 int next_job_id(std::vector<Job_class>& jobs);
 void sort_jobs(std::vector<Job_class>& jobs);
 void clean_jobs(std::vector<Job_class>& jobs);
+void remove_jobs(std::vector<Job_class>& jobs);
 void print_jobs(std::vector<Job_class>& jobs);
 int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id);
 std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);

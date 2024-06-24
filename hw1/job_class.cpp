@@ -82,6 +82,37 @@ int next_job_id(std::vector<Job_class>& jobs){
 
 }
 
+void remove_jobs(std::vector<Job_class>& jobs){
+    for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
+        if ( kill(it->process_id, SIGTERM) == -1 ) {  // send SIGTERM signal
+           	perror("smash error: kill failed");
+//        	return FAILURE;
+        }
+          	cout << "[" << it->job_id << "] " << it->command << " - Sending SIGTERM... " << flush ;
+          	sleep(5);
+        	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
+         	if (result == -1) {
+          		if ( errno != ESRCH) {
+         			perror("smash error: waitpid failed");
+//           			return FAILURE;
+        		}
+          	}
+			else if (result ) // if the process was terminated the remove from list and go to the next job
+			{
+				cout << "Done." << endl;
+				it = jobs.erase(it);
+				continue;
+			}
+			if ( kill(it->process_id, SIGKILL) == -1 ) { // if process was not terminated send signal SIGKILL
+				perror("smash error: kill failed");
+//				return FAILURE;
+			}
+			it = jobs.erase(it);
+			cout << "(5 sec passed) Sending SIGKILL... Done." << endl;
+    }
+    exit(0);
+}
+
 void clean_jobs(std::vector<Job_class>& jobs){
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);

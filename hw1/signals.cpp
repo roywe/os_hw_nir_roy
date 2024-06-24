@@ -46,7 +46,7 @@ void CtrlZHandler(int sig_num)
 
 				jobs.push_back(fg_job);
 				printf("size of jobs now:%d\n",jobs.size());
-				fg_job.status = "";
+			fg_job.status = "";
 	//			fg_id = NO_ID ;
 	//			fg_pid = NO_PID;
 	//			fg_cmd.assign("") ;

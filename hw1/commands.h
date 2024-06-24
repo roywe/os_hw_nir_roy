@@ -13,6 +13,7 @@
 #include <vector>
 #include <ctype.h>
 #include <sstream>
+#include "smash.h"
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 int ExeComp(char* lineSize);

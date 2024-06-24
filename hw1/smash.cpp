@@ -10,8 +10,11 @@ main file. This file contains the main function of smash
 #define MAXARGS 20
 
 char* L_Fg_Cmd;
-std::vector<Job_class> jobs;
+int pID = -2 ;
+int fg_pid = -2 ;
 
+std::vector<Job_class> jobs;
+Job_class fg_job;
 char lineSize[MAX_LINE_SIZE];
 
 int main(int argc, char *argv[])
@@ -21,13 +24,23 @@ int main(int argc, char *argv[])
 	//signal declaretions
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	 /* add your code here */
-	
+    struct sigaction act_INT;
+    act_INT.sa_handler = &CtrlCHandler;
+    act_INT.sa_flags = SA_RESTART;
+    sigfillset(&(act_INT.sa_mask));
+    sigaction(SIGINT, &act_INT, NULL);
 	/************************************/
 	//NOTE: the signal handlers and the function/s that sets the handler should be found in siganls.c
 	//set your signal handlers here
 	/* add your code here */
 
 	/************************************/
+    struct sigaction act_TSTP;
+    act_TSTP.sa_handler = &CtrlZHandler;
+    act_TSTP.sa_flags = SA_RESTART;
+    sigfillset(&(act_TSTP.sa_mask));
+    sigaction(SIGTSTP, &act_TSTP, NULL);
+
 
 	/************************************/
 	// Init globals 
