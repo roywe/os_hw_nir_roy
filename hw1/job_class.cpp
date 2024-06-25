@@ -192,7 +192,7 @@ int get_max_stopped(std::vector<Job_class>& jobs){
             max_pid = current_pid;
         }
     }
-    return max_pid;
+    return max_pid ;
 }
 
 Job_class::Job_class(const Job_class& other){
