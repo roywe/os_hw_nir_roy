@@ -15,10 +15,13 @@
 #include <sstream>
 #include "smash.h"
 #include <fstream>
+#include <cstdlib>
+#include <iostream>
 #define MAX_LINE_SIZE 80
 #define MAX_ARG 20
 int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString);
 void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<Job_class>& jobs);
 std::vector<std::string> readFile(std::string myFile);
+bool isPositiveInteger(char* str);
 #endif
 

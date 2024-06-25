@@ -58,6 +58,7 @@ int main(int argc, char *argv[])
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
+		clean_jobs(jobs);
 		ExeCmd(jobs, lineSize, cmdString);
 		lineSize[0]='\0';
 		cmdString[0]='\0';

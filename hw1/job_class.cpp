@@ -127,6 +127,33 @@ void clean_jobs(std::vector<Job_class>& jobs){
     }
 }
 
+// Function to search and remove job by job_id
+Job_class searchAndRemoveJob(std::vector<Job_class>& jobs, int job_id) {
+    // if job_id zero find max job id
+	if (job_id == 0) {
+        for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+            if (it->job_id > job_id) {
+            	job_id = it->job_id;
+            }
+        }
+
+    }
+        // Iterate through the vector to find the job with the given job_id
+    for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
+    	if (it->job_id == job_id) {
+                // Store the job to return
+            Job_class found_job = *it;
+                // Remove the job from the vector
+            jobs.erase(it);
+                // Return the found job
+            return found_job;
+    	}
+    }
+
+
+    return Job_class();
+}
+
 bool compare_jobs(Job_class& job1,Job_class& job2){
     return job1.get_job_id() < job2.get_job_id();
 }

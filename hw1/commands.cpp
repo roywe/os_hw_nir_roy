@@ -155,6 +155,43 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "fg"))
     {
+        if (num_arg > 1){
+            printf("smash error: %s\n", "fg: invalid arguments");
+            return 1;
+        }
+        if (num_arg == 1){
+        	if(!isPositiveInteger(args[1])){
+                printf("smash error: %s\n", "fg: invalid arguments");
+                return 1;
+        	}
+        	int jid = std::atoi(args[1]);
+        	fg_job = searchAndRemoveJob(jobs,jid);
+        	if (fg_job.job_id ==0){ //job_id is a positive num
+        		cout << "smash error:fg job-id "<< jid << " does not exist" << endl;
+        		return 1;
+        	}
+
+
+        }
+
+        else { // 0 args
+        	if(jobs.size() ==0){
+                printf("smash error: %s\n", "jobs list is empty");
+                return 1;
+        	}
+        	fg_job = searchAndRemoveJob(jobs,0);
+
+        }
+		if (fg_job.status == "Stopped"){
+			if(kill(fg_job.process_id,SIGCONT) == -1){
+				perror ("smash error : kill failed");
+			}
+			fg_job.status ="Foreground";
+
+		}
+		int process_status = 0;
+		waitpid(fg_job.process_id, &process_status, WUNTRACED);
+		fg_job = Job_class();
 
     }
     /*************************************************/
@@ -345,6 +382,29 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
 
 	}
 }
+
+
+
+bool isPositiveInteger(char* str) {
+    // Check if the string is empty or has a '-' at the beginning
+    if ( str[0] == '-' || str[0] == '0') {
+        return false;
+    }
+
+    // Check each character to ensure they are digits
+    char* ptr = str;
+    while (*ptr != '\0') {
+        if (!std::isdigit(*ptr)) {
+            return false;
+        }
+        ++ptr;
+    }
+
+    return true;
+}
+
+
+
 
 //std::vector<std::string> readFile(std::string myFile){
 //    std::vector<std::string> log;

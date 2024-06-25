@@ -7,11 +7,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
-#include <iostream>  /////
-#include <list>      /////
-#include <algorithm> ////
-#include <ctime> ///////
-#include <string> ///
+#include <iostream>
+#include <list>
+#include <algorithm>
+#include <ctime>
+#include <string>
 #include "smash.h"
 
 void CtrlCHandler(int sig_num);
