@@ -54,7 +54,7 @@ void Job_class::show_job() {
     if (this->status == "Stopped"){
         status_for_repr = " (stopped)";
     }
-    std::cout << "[" << this->job_id << "]"<< " " << this->command << " : "<<this->process_id << this->running_method << " " <<seconds_elapsed<< " sec"<<status_for_repr<< std::endl;
+    std::cout << "[" << this->job_id << "]"<< " " << this->command << " : "<<this->process_id << this->running_method << " " <<seconds_elapsed<< " secs"<<status_for_repr<< std::endl;
 //    getpid() << std::endl;
 //    printf("[%d] %s : %d%c %d secs%s",this->job_id, this->command, this->process_id, this->running_method,seconds_elapsed, status_for_repr);
 }
@@ -117,7 +117,7 @@ void clean_jobs(std::vector<Job_class>& jobs){
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
 
-        cout << it->process_id << " result is " << result <<endl;
+//        cout << it->process_id << " result is " << result <<endl;
         if (result){
         	it = jobs.erase(it);
         }
@@ -134,9 +134,17 @@ bool compare_jobs(Job_class& job1,Job_class& job2){
 void sort_jobs(std::vector<Job_class>& jobs){
     std::sort(jobs.begin(), jobs.end(), compare_jobs);
 }
-void print_jobs(std::vector<Job_class>& jobs){
+void print_jobs(std::vector<Job_class>& jobs, int pid){
     for (int i = 0; i < jobs.size(); i++) {
-        jobs[i].show_job();
+        if (pid == 0){
+            jobs[i].show_job();
+        }
+        else{
+            if (jobs[i].process_id == pid){
+                std::cout << jobs[i].command << " "<< jobs[i].running_method <<" : "<<jobs[i].process_id << std::endl;
+            }
+        }
+
     }
 }
 
@@ -148,13 +156,43 @@ std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs){
     return other_jobs;
 }
 
-int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id){
+int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped_check){
     for (int i = 0; i < jobs.size(); i++) {
         if (jobs[i].get_job_id() == job_id){
-            return jobs[i].get_process_id();
+            if (stopped_check == 0){
+                return jobs[i].get_process_id();
+            }
+            else{
+                if (jobs[i].status == "Stopped"){
+                    return jobs[i].get_process_id();
+                }
+                else{
+                    return -1;
+                }
+            }
         }
     }
     return -1;
+}
+
+void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid){
+    for (int i = 0; i < jobs.size(); i++) {
+        int current_pid = jobs[i].get_process_id();
+        if (current_pid == pid){
+            jobs[i].status = status;
+        }
+    }
+}
+
+int get_max_stopped(std::vector<Job_class>& jobs){
+    int max_pid = -1;
+    for (int i = 0; i < jobs.size(); i++) {
+        int current_pid = jobs[i].get_process_id();
+        if (jobs[i].status == "Stopped" && max_pid<current_pid){
+            max_pid = current_pid;
+        }
+    }
+    return max_pid ;
 }
 
 Job_class::Job_class(const Job_class& other){

@@ -39,8 +39,10 @@ int next_job_id(std::vector<Job_class>& jobs);
 void sort_jobs(std::vector<Job_class>& jobs);
 void clean_jobs(std::vector<Job_class>& jobs);
 void remove_jobs(std::vector<Job_class>& jobs);
-void print_jobs(std::vector<Job_class>& jobs);
-int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id);
+void print_jobs(std::vector<Job_class>& jobs, int pid = 0);
+int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped_check = 0);
+int get_max_stopped(std::vector<Job_class>& jobs);
+void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid);
 std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);
 
 //TODO: maybe we should also have jobs array which include the sort function (maybe it is overkill..

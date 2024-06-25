@@ -6,6 +6,7 @@
 *.lo
 *.o
 *.obj
+hw1/smash
 
 # Precompiled Headers
 *.gch
@@ -16,6 +17,7 @@
 *.dylib
 *.dll
 *.txt
+*.py
 # Fortran module files
 *.mod
 *.smod

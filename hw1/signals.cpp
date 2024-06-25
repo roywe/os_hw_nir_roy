@@ -45,7 +45,7 @@ void CtrlZHandler(int sig_num)
 				fg_job.status = "Stopped";
 
 				jobs.push_back(fg_job);
-				printf("size of jobs now:%d\n",jobs.size());
+//				printf("size of jobs now:%d\n",jobs.size());
 			fg_job.status = "";
 	//			fg_id = NO_ID ;
 	//			fg_pid = NO_PID;

@@ -50,7 +50,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     else if (!strcmp(cmd, "pwd"))
     {
         if(getcwd(pwd,MAX_LINE_SIZE) != NULL){
-            printf("%s/smash\n",pwd);
+            printf("%s\n",pwd); ///smash
         }
         // #TODO: is smash appropriate name or we should do something else? + error handling
     }
@@ -60,13 +60,13 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	{
         if (num_arg>1){
 
-            strcpy(cmdString, "too many arguments");
+            strcpy(cmdString, "cd: too many arguments");
             illegal_cmd = true;
 //            printf("%s","smash error: cd: too many arguments\n");
         }
         //TODO: how to remember last location after moving out the function (save it somewhere on the comp? or in jobs)
         else if (strcmp(args[1], "-") == 0 ){
-            printf("pwd is: %s\n",previous_pwd);
+//            printf("pwd is: %s\n",previous_pwd);
             if(previous_pwd[0] == NULL){
                 strcpy(cmdString, "cd: OLDPWD not set");
                 illegal_cmd = true;
@@ -74,7 +74,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             }
             else{
                 if(chdir(previous_pwd) ==-1){
-                    strcpy(cmdString, "chdir: No such file or directory");
+                    strcpy(cmdString, "cd: No such file or directory");
                     illegal_cmd = true;
                 }
             }
@@ -86,7 +86,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             strcpy(previous_pwd, tmp_prev_pwd);
 //            printf("last location is now: %s\n",pwd);
             if(chdir(args[1]) ==-1){
-                strcpy(cmdString, "chdir: No such file or directory");
+                strcpy(cmdString, "cd: No such file or directory");
                 illegal_cmd = true;
             }
 
@@ -141,7 +141,9 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 strcpy(cmdString, err.c_str());
                 illegal_cmd = true;
             } else {
-                printf("%s%d", "sending signal to process \n", pid);
+                kill(pid,signal_number);
+                printf("signal number %d was sent to pid %d",signal_number,pid);
+                return 0;
             }
 
         }
@@ -158,7 +160,51 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "bg"))
     {
+        if (num_arg > 1){
+            printf("smash error: %s\n", "bg: invalid arguments");
+            return 1;
+        }
+        else if (num_arg == 0){
+            int max_pid = get_max_stopped(jobs);
+            if (max_pid == -1){
+                printf("smash error: %s\n", "bg: there are no stopped jobs to resume");
+                return 1;
+            }
+            else{
+                set_status_for_pid(jobs, "Background", max_pid);
+                print_jobs(jobs, max_pid);
+                kill(max_pid, SIGCONT);
+            }
+        }
+        else {
 
+            char *job_arg = args[1];
+            int job_number = atoi(job_arg);
+            if (job_number == 0) {
+                printf("smash error: %s\n", "bg: invalid arguments");
+                return 1;
+            }
+            int is_job_in_jobs = get_pid_for_job_number(jobs, job_number);
+            int pid_is_stopped_job_number = get_pid_for_job_number(jobs, job_number, 1);
+            std::ostringstream oss;
+            if (is_job_in_jobs == -1) {
+                oss << "bg: job-id " << job_number << " does not exist";
+                std::string err = oss.str();
+                printf("smash error: %s\n", err);
+                return 1;
+            } else if (pid_is_stopped_job_number == -1) {
+                oss << "bg: job-id " << job_number << " is already running in the background";
+                std::string err = oss.str();
+                printf("smash error: %s\n", err);
+                return 1;
+            }
+            else{
+                set_status_for_pid(jobs, "Background", pid_is_stopped_job_number);
+                print_jobs(jobs, pid_is_stopped_job_number);
+                kill(pid_is_stopped_job_number, SIGCONT);
+            }
+
+        }
     }
     /*************************************************/
     else if (!strcmp(cmd, "quit"))
@@ -169,7 +215,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
     	}
     	else{
-    	cout << " its killing time" << endl;
+//    	cout << " its killing time" << endl;
         std::vector<Job_class>().swap(jobs); // releasing memory
     	exit(0);
     	}
@@ -181,7 +227,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         bool are_files_equal = true;
         char* file1 = args[1];
         char* file2 = args[2];
-        std::cout << "file1 : " << file1 << "file2 : " << file2 << std::endl;
+//        std::cout << "file1 : " << file1 << "file2 : " << file2 << std::endl;
         std::ifstream file1_content(file1);
         std::ifstream file2_content(file2);
         if (num_arg > 2){
@@ -216,22 +262,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             }
 
         }
-
-
-        //first try
-//        std::vector<std::string> file1_content = readFile(file1);
-//        std::vector<std::string> file2_content = readFile(file2);
-//        if (file1_content == NULL or file2_content == NULL){
-//            return false;
-//        }
-//        file1_content.size() <=file2_content.size() ? maxSize = file1_content.size() : maxSize = file2_content.size();
-//        std::cout << "max size : " << maxSize << std::endl;
-//        for (size_t x = 0; x < maxSize; ++x){
-//            if (file1_content[x] != file2_content[x])
-//                std::cout << "this line is not the same : " << file1_content[x] << std::endl;
-//                are_files_equal = false;
-//        }
-//        return are_files_equal;
 
     }
 
@@ -291,7 +321,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
                         cerr<<"smash error: execvp failed"<<endl;
                         exit(1);
                     }
-                    std::cout << "Hello from the child process! PID: " << getpid() << std::endl;
+//                    std::cout << "Hello from the child process! PID: " << getpid() << std::endl;
 			
 			default:
 
@@ -300,7 +330,7 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
                     if(background_process){
                         Job_class j = Job_class(job_id, pID, cmdString, '&', "Background");
                         jobs.push_back(j);
-                        printf("size of jobs now:%d\n",jobs.size());
+//                        printf("size of jobs now:%d\n",jobs.size());
                         return;
                     }
                     else{

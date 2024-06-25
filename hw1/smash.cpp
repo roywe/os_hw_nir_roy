@@ -58,17 +58,7 @@ int main(int argc, char *argv[])
 		fgets(lineSize, MAX_LINE_SIZE, stdin);
 		strcpy(cmdString, lineSize);    	
 		cmdString[strlen(lineSize)-1]='\0';
-					// perform a complicated Command
-                    // start by searching string in the word, after that try to run it
-//		if(!ExeComp(lineSize)) continue; //TODO what is this it isnt in the file
-//					// background command
-//                    // background are the jobs commands
-//	 	if(!BgCmd(lineSize, jobs)) continue; //TODO: if exter is in EXE and external is background - so why we need it
-					// built in commands
-                    // need to understand what is the rational here because Exe is already in cmd
 		ExeCmd(jobs, lineSize, cmdString);
-		
-		/* initialize for next line read*/
 		lineSize[0]='\0';
 		cmdString[0]='\0';
 	}
