@@ -156,18 +156,18 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     else if (!strcmp(cmd, "fg"))
     {
         if (num_arg > 1){
-            printf("smash error: %s\n", "fg: invalid arguments");
+            cerr << "smash error: fg: invalid arguments" << endl;
             return 1;
         }
         if (num_arg == 1){
         	if(!isPositiveInteger(args[1])){
-                printf("smash error: %s\n", "fg: invalid arguments");
+                cerr << "smash error: fg: invalid arguments" << endl;
                 return 1;
         	}
         	int jid = std::atoi(args[1]);
         	fg_job = searchAndRemoveJob(jobs,jid);
         	if (fg_job.job_id ==0){ //job_id is a positive num
-        		cout << "smash error:fg job-id "<< jid << " does not exist" << endl;
+                cerr << "smash error: fg: job-id " << jid <<" does not exist" << endl;
         		return 1;
         	}
 
@@ -176,7 +176,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
         else { // 0 args
         	if(jobs.size() ==0){
-                printf("smash error: %s\n", "jobs list is empty");
+                cerr <<"smash error: fg: jobs list is empty" << endl;
                 return 1;
         	}
         	fg_job = searchAndRemoveJob(jobs,0);
@@ -184,13 +184,14 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         }
 		if (fg_job.status == "Stopped"){
 			if(kill(fg_job.process_id,SIGCONT) == -1){
-				perror ("smash error : kill failed");
+				cerr <<"smash error : kill failed" << endl;
+				return 1;
 			}
 			fg_job.status ="Foreground";
 
 		}
 		int process_status = 0;
-		waitpid(fg_job.process_id, &process_status, WUNTRACED);
+//		waitpid(fg_job.process_id, &process_status, WUNTRACED);
 		fg_job = Job_class();
 
     }
@@ -198,13 +199,13 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     else if (!strcmp(cmd, "bg"))
     {
         if (num_arg > 1){
-            printf("smash error: %s\n", "bg: invalid arguments");
+            cerr << "smash error: bg: invalid arguments" << endl;
             return 1;
         }
         else if (num_arg == 0){
             int max_pid = get_max_stopped(jobs);
             if (max_pid == -1){
-                printf("smash error: %s\n", "bg: there are no stopped jobs to resume");
+                cerr << "smash error: bg: there are no stopped jobs to resume" << endl;;
                 return 1;
             }
             else{
@@ -218,21 +219,19 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             char *job_arg = args[1];
             int job_number = atoi(job_arg);
             if (job_number == 0) {
-                printf("smash error: %s\n", "bg: invalid arguments");
+                cerr<<"smash error: bg: invalid arguments" << endl;
                 return 1;
             }
             int is_job_in_jobs = get_pid_for_job_number(jobs, job_number);
             int pid_is_stopped_job_number = get_pid_for_job_number(jobs, job_number, 1);
-            std::ostringstream oss;
+
             if (is_job_in_jobs == -1) {
-                oss << "bg: job-id " << job_number << " does not exist";
-                std::string err = oss.str();
-                printf("smash error: %s\n", err);
+                cerr << "smash error: bg: job-id "<< job_number <<" does not exist" << endl;
+
                 return 1;
             } else if (pid_is_stopped_job_number == -1) {
-                oss << "bg: job-id " << job_number << " is already running in the background";
-                std::string err = oss.str();
-                printf("smash error: %s\n", err);
+                cerr << "smash error: bg: job-id "<< job_number <<" is already running in the background" << endl;
+
                 return 1;
             }
             else{
@@ -252,7 +251,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
     	}
     	else{
-//    	cout << " its killing time" << endl;
         std::vector<Job_class>().swap(jobs); // releasing memory
     	exit(0);
     	}
@@ -353,7 +351,6 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
 					
 			        // Add your code here (execute an external command)
                     //TODO: we need to check here if to split
-                    printf("%s -> %s",args[0],args[1]);
                     if(execvp(args[0], args)<0){
                         cerr<<"smash error: execvp failed"<<endl;
                         exit(1);

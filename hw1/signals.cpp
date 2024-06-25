@@ -10,26 +10,24 @@ using namespace std;
 
 void CtrlCHandler(int sig_num)
 {
+	cout << "smash: caught ctrl-C" << endl;
 	if (fg_job.status == "Foreground"){
-		cout << "smash: caught ctrl-C,  pid "<< fg_job.process_id << endl;
-		if (fg_job.process_id == 0) return;
 
+		if (fg_job.process_id == 0) return;
 		if (! kill(fg_job.process_id, SIGKILL) ) {
 				cout << "smash: process " << fg_job.process_id << " was killed" << endl;
 				fg_job = Job_class();
 
 		}
 		else {
-			perror ("smash error : kill failed");
+			cerr <<"smash error : kill failed" << endl;
 		}
 	}
 }
 void CtrlZHandler(int sig_num)
 {
+	cout << "smash: caught ctrl-Z" << endl;
 	if (fg_job.status == "Foreground"){
-		cout << "smash: caught ctrl-Z" << endl;
-
-
 		if (! kill(fg_job.process_id, SIGSTOP) ) {
 				cout << "smash: process " << fg_job.process_id << " was stopped" << endl;
 				fg_job.running_method = '&';
@@ -41,7 +39,7 @@ void CtrlZHandler(int sig_num)
 ;
 		}
 		else {
-			perror ("smash error : kill failed");
+			cerr <<"smash error : kill failed" << endl;
 		}
 	}
 }
