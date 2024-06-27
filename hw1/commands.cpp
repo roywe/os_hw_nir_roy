@@ -142,7 +142,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 illegal_cmd = true;
             } else {
                 kill(pid,signal_number);
-                printf("signal number %d was sent to pid %d",signal_number,pid);
+                printf("signal number %d was sent to pid %d\n",signal_number,pid);
                 return 0;
             }
 
@@ -171,7 +171,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         		return 1;
         	}
 
-
         }
 
         else { // 0 args
@@ -182,6 +181,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         	fg_job = searchAndRemoveJob(jobs,0);
 
         }
+
 		if (fg_job.status == "Stopped"){
 			if(kill(fg_job.process_id,SIGCONT) == -1){
 				cerr <<"smash error : kill failed" << endl;
@@ -190,9 +190,12 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 			fg_job.status ="Foreground";
 
 		}
-		int process_status = 0;
-//		waitpid(fg_job.process_id, &process_status, WUNTRACED);
-		fg_job = Job_class();
+        cout << fg_job.command << " : " << fg_job.process_id << endl;
+        Job_class j = Job_class(fg_job.job_id, fg_job.process_id, fg_job.command, '0', "Foreground");
+        fg_job = j;
+        int process_status = 0;
+        waitpid(fg_job.process_id, &process_status, WUNTRACED);
+        j = Job_class();
 
     }
     /*************************************************/
