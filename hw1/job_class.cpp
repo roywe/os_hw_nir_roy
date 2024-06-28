@@ -77,7 +77,7 @@ int next_job_id(std::vector<Job_class>& jobs){
     }
 
 }
-
+// removes all jobs from jobs vector, at first send SIGTEM, if doesnt work send SIGKILL
 void remove_jobs(std::vector<Job_class>& jobs){
     //TODO: go over this function - what is the return here - why failure etc...
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
@@ -109,7 +109,7 @@ void remove_jobs(std::vector<Job_class>& jobs){
     }
     exit(0);
 }
-
+// removes jobs which have finished from the jobs vector
 void clean_jobs(std::vector<Job_class>& jobs){
     //TODO: what is the difference between here and the remove one + documentattion
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
@@ -124,7 +124,8 @@ void clean_jobs(std::vector<Job_class>& jobs){
     }
 }
 
-// Function to search and remove job by job_id
+// Function to search and remove job by job id,
+// if job id is zero removes the highest job id from jobs vector
 Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id) {
     //TODO: can this and the previous can be merged?
 

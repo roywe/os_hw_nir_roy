@@ -49,7 +49,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         if(getcwd(pwd,MAX_LINE_SIZE) != NULL){
             printf("%s\n",pwd); ///smash
         }
-        else{
+        else{ //FIXME : not sure if it's needed
             strcpy(cmdString, "pwd: invalid arguments");
             illegal_cmd = true;
         }
@@ -58,7 +58,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "cd") )
 	{
-        if (num_arg>1){
+        if (num_arg>1){ //FIXME - i think need to be printed to stderr
             strcpy(cmdString, "cd: too many arguments");
             illegal_cmd = true;
         }
