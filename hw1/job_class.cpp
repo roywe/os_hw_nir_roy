@@ -117,7 +117,6 @@ void clean_jobs(std::vector<Job_class>& jobs){
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
 
-//        cout << it->process_id << " result is " << result <<endl;
         if (result){
         	it = jobs.erase(it);
         }

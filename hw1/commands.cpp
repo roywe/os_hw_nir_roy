@@ -4,15 +4,14 @@
 //********************************************
 // function name: ExeCmd
 // Description: interperts and executes built-in commands
-// Parameters: pointer to jobs, command string
+// Parameters: pointer to jobs, lineSize - command string, cmdString - at start same as linesize, after that error var
 // Returns: 0 - success,1 - failure
 //**************************************************************************************
 using namespace std;
 char previous_pwd[MAX_LINE_SIZE] = "";
 int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 {
-    //TODO: cmd string == linesize at first, why? - for build in there is format
-    // for not build in we need to think..
+
 	char* cmd; 
 	char* args[MAX_ARG];
     char pwd[MAX_LINE_SIZE] = ""; //mine
@@ -26,12 +25,11 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	for (i=1; i<MAX_ARG; i++)
 	{
 		args[i] = strtok(NULL, delimiters);
-//        printf("%s,",args[i]); //mine
         if (args[i] != NULL)
 			num_arg++;
  
 	}
-//    printf("%s",pwd);
+
 /*************************************************/
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
 // ARE IN THIS CHAIN OF IF COMMANDS. PLEASE ADD
@@ -43,7 +41,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         pid_t process_id;
         process_id = getpid();
         printf("smash pid is %d\n", process_id);
-        // #TODO: is \n fine or not + error handling
     }
 
     /*************************************************/
@@ -52,7 +49,10 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         if(getcwd(pwd,MAX_LINE_SIZE) != NULL){
             printf("%s\n",pwd); ///smash
         }
-        // #TODO: is smash appropriate name or we should do something else? + error handling
+        else{
+            strcpy(cmdString, "pwd: invalid arguments");
+            illegal_cmd = true;
+        }
     }
 
     /*************************************************/
@@ -62,15 +62,11 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
             strcpy(cmdString, "cd: too many arguments");
             illegal_cmd = true;
-//            printf("%s","smash error: cd: too many arguments\n");
         }
-        //TODO: how to remember last location after moving out the function (save it somewhere on the comp? or in jobs)
         else if (strcmp(args[1], "-") == 0 ){
-//            printf("pwd is: %s\n",previous_pwd);
             if(previous_pwd[0] == NULL){
                 strcpy(cmdString, "cd: OLDPWD not set");
                 illegal_cmd = true;
-//                printf("%s","smash error: cd: OLDPWD not set\n");
             }
             else{
                 if(chdir(previous_pwd) ==-1){
@@ -84,20 +80,17 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             char tmp_prev_pwd[MAX_LINE_SIZE];
             getcwd(tmp_prev_pwd,MAX_LINE_SIZE);
             strcpy(previous_pwd, tmp_prev_pwd);
-//            printf("last location is now: %s\n",pwd);
             if(chdir(args[1]) ==-1){
                 strcpy(cmdString, "cd: No such file or directory");
                 illegal_cmd = true;
             }
-
         }
 
 	}
     /*************************************************/
     else if (!strcmp(cmd, "jobs"))
     {
-    	clean_jobs(jobs);
-//        std::vector<Job_class> other_jobs = create_jobs_from_other(jobs);
+        clean_jobs(jobs);
         sort_jobs(jobs);
         print_jobs(jobs);
 
@@ -105,12 +98,9 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "kill"))
     {
-//        int job_id_tmp = 99;
-//        int pID_tmp = 99;
-//        Job_class j = Job_class(job_id_tmp, pID_tmp, cmdString, '&', "Background");
-//        jobs.push_back(j);
         if ((num_arg < 2) || (num_arg > 2)){
-            printf("smash error: %s\n", "kill: invalid arguments");
+//            printf("smash error: %s\n", "kill: invalid arguments");
+            cerr <<"smash error: kill: invalid arguments" << endl;
             return 1;
         }
 
@@ -122,12 +112,14 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             signal_arg[0] = ' ';
             signal_number = atoi(signal_arg);
         } else {
-            printf("smash error: %s\n", "kill: invalid arguments");
+//            printf("smash error: %s\n", "kill: invalid arguments");
+            cerr <<"smash error: kill: invalid arguments" << endl;
             return 1;
         }
 
         if ((signal_number < 0) || (signal_number > 32)) {
-            printf("smash error: %s\n", "kill: invalid arguments");
+            cerr <<"smash error: kill: invalid arguments" << endl;
+//            printf("smash error: %s\n", "kill: invalid arguments");
             return 1;
         } else {
 
@@ -147,10 +139,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             }
 
         }
-
-
-
-
     }
     /*************************************************/
     else if (!strcmp(cmd, "fg"))
@@ -250,8 +238,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     {
 
     	if((num_arg >0 )&& (!strcmp (args[1], "kill"))){
-    	remove_jobs(jobs);
-
+    	    remove_jobs(jobs);
     	}
     	else{
         std::vector<Job_class>().swap(jobs); // releasing memory
@@ -311,7 +298,8 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	}
 	if (illegal_cmd == true)
 	{
-		printf("smash error: %s\n", cmdString);
+//		printf("smash error: %s\n", cmdString);
+        cerr <<"smash error: " << cmdString << endl;
 		return 1;
 	}
     return 0;
