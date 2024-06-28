@@ -47,19 +47,6 @@ int get_max_stopped(std::vector<Job_class>& jobs);
 void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid);
 std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);
 
-//TODO: maybe we should also have jobs array which include the sort function (maybe it is overkill..
-
-//struct job(){
-//    int/string job_id
-//    string command
-//    int process id
-//    time -> time of entering the array
-//    status - stopped/ running etc
-//
-//    sort() - sort by jobs (without changing list) - before run remove job (if status is wrong)
-//    free() - when killed we need to free job space
-//
-//}
-//jobs - need to save the jobs that are out somehow
+//TODO: how to implement free to job
 
 #endif //OS_HW_NIR_ROY_JOB_CLASS_H

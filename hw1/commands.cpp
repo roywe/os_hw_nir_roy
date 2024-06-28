@@ -14,7 +14,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
 	char* cmd; 
 	char* args[MAX_ARG];
-    char pwd[MAX_LINE_SIZE] = ""; //mine
+    char pwd[MAX_LINE_SIZE] = "";
 	char* delimiters = " \t\n";  
 	int i = 0, num_arg = 0;
     bool illegal_cmd = false; // illegal command
@@ -59,7 +59,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     else if (!strcmp(cmd, "cd") )
 	{
         if (num_arg>1){
-
             strcpy(cmdString, "cd: too many arguments");
             illegal_cmd = true;
         }
@@ -98,8 +97,8 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "kill"))
     {
+        //TODO: check what is the situation for different signals
         if ((num_arg < 2) || (num_arg > 2)){
-//            printf("smash error: %s\n", "kill: invalid arguments");
             cerr <<"smash error: kill: invalid arguments" << endl;
             return 1;
         }
@@ -112,14 +111,12 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             signal_arg[0] = ' ';
             signal_number = atoi(signal_arg);
         } else {
-//            printf("smash error: %s\n", "kill: invalid arguments");
             cerr <<"smash error: kill: invalid arguments" << endl;
             return 1;
         }
 
         if ((signal_number < 0) || (signal_number > 32)) {
             cerr <<"smash error: kill: invalid arguments" << endl;
-//            printf("smash error: %s\n", "kill: invalid arguments");
             return 1;
         } else {
 
@@ -143,6 +140,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "fg"))
     {
+        //TODO: check if if
         if (num_arg > 1){
             cerr << "smash error: fg: invalid arguments" << endl;
             return 1;
@@ -189,6 +187,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "bg"))
     {
+        //TODO: check if if
         if (num_arg > 1){
             cerr << "smash error: bg: invalid arguments" << endl;
             return 1;
@@ -203,6 +202,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 set_status_for_pid(jobs, "Background", max_pid);
                 print_jobs(jobs, max_pid);
                 kill(max_pid, SIGCONT);
+                return 0;
             }
         }
         else {
@@ -229,6 +229,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 set_status_for_pid(jobs, "Background", pid_is_stopped_job_number);
                 print_jobs(jobs, pid_is_stopped_job_number);
                 kill(pid_is_stopped_job_number, SIGCONT);
+                return 0;
             }
 
         }
@@ -238,7 +239,8 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     {
 
     	if((num_arg >0 )&& (!strcmp (args[1], "kill"))){
-    	    remove_jobs(jobs);
+    	    //TODO: check that the 5 seconds option really work
+            remove_jobs(jobs);
     	}
     	else{
         std::vector<Job_class>().swap(jobs); // releasing memory
@@ -248,11 +250,11 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "diff"))
     {
+        //TODO: talk about it, it seems find but maybe we need to check more
         size_t maxSize;
         bool are_files_equal = true;
         char* file1 = args[1];
         char* file2 = args[2];
-//        std::cout << "file1 : " << file1 << "file2 : " << file2 << std::endl;
         std::ifstream file1_content(file1);
         std::ifstream file2_content(file2);
         if (num_arg > 2){
@@ -293,12 +295,12 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else // external command
 	{
+        //TODO: check memory leak for jobs array...
  		ExeExternal(args, cmdString, num_arg, jobs);
 	 	return 0;
 	}
 	if (illegal_cmd == true)
 	{
-//		printf("smash error: %s\n", cmdString);
         cerr <<"smash error: " << cmdString << endl;
 		return 1;
 	}
@@ -332,30 +334,23 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
         switch(pID = fork())
 	{
     		case -1:
-                // Add your code here (error)
                 std::cerr << "Fork failed!" << std::endl;
                 exit(1);
 
         	case 0 :
                 	// Child Process
                		setpgrp();
-					
-			        // Add your code here (execute an external command)
-                    //TODO: we need to check here if to split
                     if(execvp(args[0], args)<0){
                         cerr<<"smash error: execvp failed"<<endl;
                         exit(1);
                     }
-//                    std::cout << "Hello from the child process! PID: " << getpid() << std::endl;
 			
 			default:
-
-                	// Add your code here
                     int job_id = next_job_id(jobs);
                     if(background_process){
                         Job_class j = Job_class(job_id, pID, cmdString, '&', "Background");
+                        //TODO: I tried to check 100 processes, seems like they all get in to vector which is kind of weird
                         jobs.push_back(j);
-//                        printf("size of jobs now:%d\n",jobs.size());
                         return;
                     }
                     else{
@@ -390,67 +385,3 @@ bool isPositiveInteger(char* str) {
 
     return true;
 }
-
-
-
-
-//std::vector<std::string> readFile(std::string myFile){
-//    std::vector<std::string> log;
-//    std::string buffer;
-//    std::string b;
-//    std::ifstream input_file(myFile);
-//    int o = 1;
-//    if (!input_file.is_open())
-//    {
-//        std::cout << "Could not open the file " << myFile << std::endl;
-////        exit(EXIT_FAILURE);
-//        return log;
-//    }
-//
-//    while (input_file >> buffer)
-//    {
-//        if (o > 2)
-//        {
-//            log.push_back(b);
-//            o = 0;
-//            b.erase();
-//        }
-//        else {
-//            b.append(buffer);
-//            b.append(" ");
-//            ++o;
-//        }
-//    }
-//
-//    input_file.close();
-//    return log;
-//}
-
-//struct job(){
-//    int/string job_id
-//    string command
-//    int process id
-//    time -> time of entering the array
-//    status - stopped/ running etc
-//
-//    sort() - sort by jobs (without changing list) - before run remove job (if status is wrong)
-//    free() - when killed we need to free job space
-//
-//}
-//jobs - need to save the jobs that are out somehow
-
-
-//            j->show_job();
-//            execv(lineSize);
-//            struct sigaction sa = {.sa_handler = sigintHandler};
-//            sigfillset(&sa.sa_mask);
-//            sigaction(SIGINT, &sa, NULL);
-//            while(1) {
-//                if(receivedSignal) { exit(0); }
-//                sleep(1);
-//            }
-
-// Wait for the child process to complete
-//            wait(NULL); //backgroud - not waiting
-//            sleep(1);
-//            kill(childPid, SIGINT);

@@ -6,9 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 using namespace std;
-//Job_class::Job_class(){
-//
-//}
 
 Job_class::Job_class(){
     time_t t = time(0);
@@ -55,8 +52,6 @@ void Job_class::show_job() {
         status_for_repr = " (stopped)";
     }
     std::cout << "[" << this->job_id << "]"<< " " << this->command << " : "<<this->process_id << " " <<seconds_elapsed<< " secs"<<status_for_repr<< std::endl;
-//    getpid() << std::endl;
-//    printf("[%d] %s : %d%c %d secs%s",this->job_id, this->command, this->process_id, this->running_method,seconds_elapsed, status_for_repr);
 }
 
 bool Job_class::compare_jobs(const Job_class& other){
@@ -168,7 +163,6 @@ void print_jobs(std::vector<Job_class>& jobs, int pid){
         else{
             if (jobs[i].process_id == pid){
                 std::cout << jobs[i].command << " : "<<jobs[i].process_id << std::endl;
-                //" "<< jobs[i].running_method <<
             }
         }
 

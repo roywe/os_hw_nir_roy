@@ -26,6 +26,7 @@ void CtrlCHandler(int sig_num)
 }
 void CtrlZHandler(int sig_num)
 {
+    //TODO: I paid attention that if we just put ctrl c in the smash things got weird
 	cout << "smash: caught ctrl-Z" << endl;
 	if (fg_job.status == "Foreground"){
 		if (! kill(fg_job.process_id, SIGSTOP) ) {

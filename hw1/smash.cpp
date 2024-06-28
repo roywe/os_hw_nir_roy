@@ -41,9 +41,7 @@ int main(int argc, char *argv[])
     sigfillset(&(act_TSTP.sa_mask));
     sigaction(SIGTSTP, &act_TSTP, NULL);
 
-
 	/************************************/
-	// Init globals 
 
 
 	
