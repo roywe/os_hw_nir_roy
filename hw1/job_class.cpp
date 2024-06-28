@@ -6,9 +6,6 @@
 #include <string.h>
 #include <stdio.h>
 using namespace std;
-//Job_class::Job_class(){
-//
-//}
 
 Job_class::Job_class(){
     time_t t = time(0);
@@ -32,6 +29,7 @@ Job_class::Job_class(int job_id, int process_id, const std::string& command, con
 }
 
 Job_class::~Job_class(){
+    //TODO: understand if needed
 //    delete this->command;
 //    delete this->create_time;
 //    delete this->status;
@@ -55,15 +53,13 @@ void Job_class::show_job() {
         status_for_repr = " (stopped)";
     }
     std::cout << "[" << this->job_id << "]"<< " " << this->command << " : "<<this->process_id << " " <<seconds_elapsed<< " secs"<<status_for_repr<< std::endl;
-//    getpid() << std::endl;
-//    printf("[%d] %s : %d%c %d secs%s",this->job_id, this->command, this->process_id, this->running_method,seconds_elapsed, status_for_repr);
 }
 
 bool Job_class::compare_jobs(const Job_class& other){
     return this->job_id > other.job_id;
 }
 
-
+//TODO: documentation - everywhere!
 
 int next_job_id(std::vector<Job_class>& jobs){
     int max_job_id = 1;
@@ -83,6 +79,7 @@ int next_job_id(std::vector<Job_class>& jobs){
 }
 
 void remove_jobs(std::vector<Job_class>& jobs){
+    //TODO: go over this function - what is the return here - why failure etc...
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
         if ( kill(it->process_id, SIGTERM) == -1 ) {  // send SIGTERM signal
            	perror("smash error: kill failed");
@@ -114,10 +111,10 @@ void remove_jobs(std::vector<Job_class>& jobs){
 }
 
 void clean_jobs(std::vector<Job_class>& jobs){
+    //TODO: what is the difference between here and the remove one + documentattion
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
 
-//        cout << it->process_id << " result is " << result <<endl;
         if (result){
         	it = jobs.erase(it);
         }
@@ -128,7 +125,9 @@ void clean_jobs(std::vector<Job_class>& jobs){
 }
 
 // Function to search and remove job by job_id
-Job_class searchAndRemoveJob(std::vector<Job_class>& jobs, int job_id) {
+Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id) {
+    //TODO: can this and the previous can be merged?
+
     // if job_id zero find max job id
 	if (job_id == 0) {
         for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
@@ -169,7 +168,6 @@ void print_jobs(std::vector<Job_class>& jobs, int pid){
         else{
             if (jobs[i].process_id == pid){
                 std::cout << jobs[i].command << " : "<<jobs[i].process_id << std::endl;
-                //" "<< jobs[i].running_method <<
             }
         }
 

@@ -40,26 +40,13 @@ int next_job_id(std::vector<Job_class>& jobs);
 void sort_jobs(std::vector<Job_class>& jobs);
 void clean_jobs(std::vector<Job_class>& jobs);
 void remove_jobs(std::vector<Job_class>& jobs);
-Job_class searchAndRemoveJob(std::vector<Job_class>& jobs, int job_id);
+Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id);
 void print_jobs(std::vector<Job_class>& jobs, int pid = 0);
 int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped_check = 0);
 int get_max_stopped(std::vector<Job_class>& jobs);
 void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid);
 std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);
 
-//TODO: maybe we should also have jobs array which include the sort function (maybe it is overkill..
-
-//struct job(){
-//    int/string job_id
-//    string command
-//    int process id
-//    time -> time of entering the array
-//    status - stopped/ running etc
-//
-//    sort() - sort by jobs (without changing list) - before run remove job (if status is wrong)
-//    free() - when killed we need to free job space
-//
-//}
-//jobs - need to save the jobs that are out somehow
+//TODO: how to implement free to job
 
 #endif //OS_HW_NIR_ROY_JOB_CLASS_H
