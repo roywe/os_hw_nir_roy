@@ -59,7 +59,7 @@ bool Job_class::compare_jobs(const Job_class& other){
     return this->job_id > other.job_id;
 }
 
-
+//TODO: documentation - everywhere!
 
 int next_job_id(std::vector<Job_class>& jobs){
     int max_job_id = 1;
