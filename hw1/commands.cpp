@@ -151,7 +151,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 return 1;
         	}
         	int jid = std::atoi(args[1]);
-        	fg_job = searchAndRemoveJob(jobs,jid);
+        	fg_job = search_remove_job(jobs,jid);
         	if (fg_job.job_id ==0){ //job_id is a positive num
                 cerr << "smash error: fg: job-id " << jid <<" does not exist" << endl;
         		return 1;
@@ -164,7 +164,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 cerr <<"smash error: fg: jobs list is empty" << endl;
                 return 1;
         	}
-        	fg_job = searchAndRemoveJob(jobs,0);
+        	fg_job = search_remove_job(jobs,0);
 
         }
 

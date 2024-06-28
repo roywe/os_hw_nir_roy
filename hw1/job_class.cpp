@@ -29,6 +29,7 @@ Job_class::Job_class(int job_id, int process_id, const std::string& command, con
 }
 
 Job_class::~Job_class(){
+    //TODO: understand if needed
 //    delete this->command;
 //    delete this->create_time;
 //    delete this->status;
@@ -78,6 +79,7 @@ int next_job_id(std::vector<Job_class>& jobs){
 }
 
 void remove_jobs(std::vector<Job_class>& jobs){
+    //TODO: go over this function - what is the return here - why failure etc...
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
         if ( kill(it->process_id, SIGTERM) == -1 ) {  // send SIGTERM signal
            	perror("smash error: kill failed");
@@ -109,6 +111,7 @@ void remove_jobs(std::vector<Job_class>& jobs){
 }
 
 void clean_jobs(std::vector<Job_class>& jobs){
+    //TODO: what is the difference between here and the remove one + documentattion
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
 
@@ -122,7 +125,9 @@ void clean_jobs(std::vector<Job_class>& jobs){
 }
 
 // Function to search and remove job by job_id
-Job_class searchAndRemoveJob(std::vector<Job_class>& jobs, int job_id) {
+Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id) {
+    //TODO: can this and the previous can be merged?
+
     // if job_id zero find max job id
 	if (job_id == 0) {
         for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
