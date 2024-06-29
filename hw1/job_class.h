@@ -45,6 +45,5 @@ void print_jobs(std::vector<Job_class>& jobs, int pid = 0);
 int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped_check = 0);
 int get_max_stopped(std::vector<Job_class>& jobs);
 void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid);
-std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);
 
 #endif //OS_HW_NIR_ROY_JOB_CLASS_H

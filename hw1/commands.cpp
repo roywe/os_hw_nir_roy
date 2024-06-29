@@ -15,7 +15,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	char* cmd; 
 	char* args[MAX_ARG];
     char pwd[MAX_LINE_SIZE] = "";
-	char* delimiters = " \t\n";  
+	const char* delimiters = " \t\n";
 	int i = 0, num_arg = 0;
     bool illegal_cmd = false; // illegal command
     	cmd = strtok(lineSize, delimiters);
@@ -63,7 +63,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             illegal_cmd = true;
         }
         else if (strcmp(args[1], "-") == 0 ){
-            if(previous_pwd[0] == NULL){
+            if(strcmp(previous_pwd,"")==0){
                 strcpy(cmdString, "cd: OLDPWD not set");
                 illegal_cmd = true;
             }
@@ -251,8 +251,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     //  finding if there is diff between 2 files
     else if (!strcmp(cmd, "diff"))
     {
-        size_t maxSize;
-        bool are_files_equal = true;
         char* file1 = args[1];
         char* file2 = args[2];
         std::ifstream file1_content(file1);
