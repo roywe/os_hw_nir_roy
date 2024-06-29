@@ -16,10 +16,7 @@
 
 void CtrlCHandler(int sig_num);
 void CtrlZHandler(int sig_num);
-extern int fg_pid;
-extern int pID;
-extern int fg_id;
-extern char *fg_cmd;
+
 
 
 
