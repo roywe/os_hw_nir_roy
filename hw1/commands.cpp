@@ -15,7 +15,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	char* cmd; 
 	char* args[MAX_ARG];
     char pwd[MAX_LINE_SIZE] = "";
-	char* delimiters = " \t\n";  
+	const char* delimiters = " \t\n";
 	int i = 0, num_arg = 0;
     bool illegal_cmd = false; // illegal command
     	cmd = strtok(lineSize, delimiters);
@@ -36,6 +36,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 // MORE IF STATEMENTS AS REQUIRED
 /*************************************************/
 
+    //printing pid to stdout
     if (!strcmp(cmd, "showpid"))
     {
         pid_t process_id;
@@ -44,6 +45,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     }
 
     /*************************************************/
+    //printing cwd to stdout
     else if (!strcmp(cmd, "pwd"))
     {
         if(getcwd(pwd,MAX_LINE_SIZE) != NULL){
@@ -52,6 +54,8 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     }
 
     /*************************************************/
+    //change directory - 2 arguments only, the first can be - (previous directory) or the location only
+    // also saving previous location in previous_pwd in case there is new location
     else if (!strcmp(cmd, "cd") )
 	{
         if (num_arg>1){
@@ -59,7 +63,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             illegal_cmd = true;
         }
         else if (strcmp(args[1], "-") == 0 ){
-            if(previous_pwd[0] == NULL){
+            if(strcmp(previous_pwd,"")==0){
                 strcpy(cmdString, "cd: OLDPWD not set");
                 illegal_cmd = true;
             }
@@ -83,6 +87,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
 	}
     /*************************************************/
+    //printing jobs sorted by job_id also cleaning irrelevant jobs before
     else if (!strcmp(cmd, "jobs"))
     {
         clean_jobs(jobs);
@@ -91,6 +96,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
     }
     /*************************************************/
+    //sending signal to kill, kill can get exactly 2 variables -{signal number} job-id, validating input and send signal
     else if (!strcmp(cmd, "kill"))
     {
         if ((num_arg < 2) || (num_arg > 2)){
@@ -133,6 +139,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         }
     }
     /*************************************************/
+    // moving job to foreground and waiting for it, fg can get 1 args indicating job id, or 0 args moving the max job id
     else if (!strcmp(cmd, "fg"))
     {
         if (num_arg > 1){
@@ -179,6 +186,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 
     }
     /*************************************************/
+    // moving stopped job to run in background, bg can get 1 args indicating job id, or 0 args moving the max job id
     else if (!strcmp(cmd, "bg"))
     {
         if (num_arg > 1){
@@ -186,7 +194,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
             return 1;
         }
         else if (num_arg == 0){
-            int max_pid = get_max_stopped(jobs);
+            int max_pid = get_max_stopped(jobs); //handle max jobs
             if (max_pid == -1){
                 cerr << "smash error: bg: there are no stopped jobs to resume" << endl;;
                 return 1;
@@ -206,8 +214,8 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 cerr<<"smash error: bg: invalid arguments" << endl;
                 return 1;
             }
-            int is_job_in_jobs = get_pid_for_job_number(jobs, job_number);
-            int pid_is_stopped_job_number = get_pid_for_job_number(jobs, job_number, 1);
+            int is_job_in_jobs = get_pid_for_job_number(jobs, job_number); //check if existed
+            int pid_is_stopped_job_number = get_pid_for_job_number(jobs, job_number, 1); //if existed check if stopped
 
             if (is_job_in_jobs == -1) {
                 cerr << "smash error: bg: job-id "<< job_number <<" does not exist" << endl;
@@ -228,6 +236,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         }
     }
     /*************************************************/
+    //  quit and quit kill - sending signals and exit small shell
     else if (!strcmp(cmd, "quit"))
     {
     	if((num_arg >0 )&& (!strcmp (args[1], "kill"))){
@@ -239,10 +248,9 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     	}
     }
     /*************************************************/
+    //  finding if there is diff between 2 files
     else if (!strcmp(cmd, "diff"))
     {
-        size_t maxSize;
-        bool are_files_equal = true;
         char* file1 = args[1];
         char* file2 = args[2];
         std::ifstream file1_content(file1);
