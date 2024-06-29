@@ -47,6 +47,4 @@ int get_max_stopped(std::vector<Job_class>& jobs);
 void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid);
 std::vector<Job_class>& create_jobs_from_other(std::vector<Job_class>& jobs);
 
-//TODO: how to implement free to job
-
 #endif //OS_HW_NIR_ROY_JOB_CLASS_H

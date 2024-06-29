@@ -29,10 +29,7 @@ Job_class::Job_class(int job_id, int process_id, const std::string& command, con
 }
 
 Job_class::~Job_class(){
-    //TODO: understand if needed
-//    delete this->command;
-//    delete this->create_time;
-//    delete this->status;
+
 }
 
 int Job_class::get_job_id(){
@@ -60,6 +57,7 @@ bool Job_class::compare_jobs(const Job_class& other){
 }
 
 //TODO: documentation - everywhere!
+//roy + nir
 
 int next_job_id(std::vector<Job_class>& jobs){
     int max_job_id = 1;
@@ -80,6 +78,7 @@ int next_job_id(std::vector<Job_class>& jobs){
 // removes all jobs from jobs vector, at first send SIGTEM, if doesnt work send SIGKILL
 void remove_jobs(std::vector<Job_class>& jobs){
     //TODO: go over this function - what is the return here - why failure etc...
+    // nir
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
         if ( kill(it->process_id, SIGTERM) == -1 ) {  // send SIGTERM signal
            	perror("smash error: kill failed");
@@ -111,7 +110,8 @@ void remove_jobs(std::vector<Job_class>& jobs){
 }
 // removes jobs which have finished from the jobs vector
 void clean_jobs(std::vector<Job_class>& jobs){
-    //TODO: what is the difference between here and the remove one + documentattion
+    //TODO: check names to diffrentiate between clean jobs, remove search job, remove jobs
+    //nir
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
 
@@ -127,7 +127,6 @@ void clean_jobs(std::vector<Job_class>& jobs){
 // Function to search and remove job by job id,
 // if job id is zero removes the highest job id from jobs vector
 Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id) {
-    //TODO: can this and the previous can be merged?
 
     // if job_id zero find max job id
 	if (job_id == 0) {

@@ -49,16 +49,12 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
         if(getcwd(pwd,MAX_LINE_SIZE) != NULL){
             printf("%s\n",pwd); ///smash
         }
-        else{ //FIXME : not sure if it's needed
-            strcpy(cmdString, "pwd: invalid arguments");
-            illegal_cmd = true;
-        }
     }
 
     /*************************************************/
     else if (!strcmp(cmd, "cd") )
 	{
-        if (num_arg>1){ //FIXME - i think need to be printed to stderr
+        if (num_arg>1){
             strcpy(cmdString, "cd: too many arguments");
             illegal_cmd = true;
         }
@@ -97,7 +93,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "kill"))
     {
-        //TODO: check what is the situation for different signals
         if ((num_arg < 2) || (num_arg > 2)){
             cerr <<"smash error: kill: invalid arguments" << endl;
             return 1;
@@ -140,7 +135,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "fg"))
     {
-        //TODO: check if if
         if (num_arg > 1){
             cerr << "smash error: fg: invalid arguments" << endl;
             return 1;
@@ -187,7 +181,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "bg"))
     {
-        //TODO: check if if
         if (num_arg > 1){
             cerr << "smash error: bg: invalid arguments" << endl;
             return 1;
@@ -237,9 +230,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "quit"))
     {
-
     	if((num_arg >0 )&& (!strcmp (args[1], "kill"))){
-    	    //TODO: check that the 5 seconds option really work
             remove_jobs(jobs);
     	}
     	else{
@@ -250,7 +241,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     /*************************************************/
     else if (!strcmp(cmd, "diff"))
     {
-        //TODO: talk about it, it seems find but maybe we need to check more
         size_t maxSize;
         bool are_files_equal = true;
         char* file1 = args[1];
@@ -295,7 +285,6 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else // external command
 	{
-        //TODO: check memory leak for jobs array...
  		ExeExternal(args, cmdString, num_arg, jobs);
 	 	return 0;
 	}
@@ -349,7 +338,6 @@ void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<
                     int job_id = next_job_id(jobs);
                     if(background_process){
                         Job_class j = Job_class(job_id, pID, cmdString, '&', "Background");
-                        //TODO: I tried to check 100 processes, seems like they all get in to vector which is kind of weird
                         jobs.push_back(j);
                         return;
                     }
