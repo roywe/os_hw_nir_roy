@@ -43,13 +43,13 @@ int main(int argc, char *argv[])
 
 	/************************************/
 
-
+    //TODO: check warnings and delete
+    // nir
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
 			exit (-1); 
 	L_Fg_Cmd[0] = '\0';
-	    //TODO: in the file it says that build in function should ignore & but background function run first to it happened before..
     	while (1)
     	{
 	 	printf("smash > ");
