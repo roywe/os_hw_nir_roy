@@ -29,6 +29,21 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 			num_arg++;
  
 	}
+	// built -in commands ignores &
+    bool background_process = false;
+    if (num_arg>0){
+        //check if background process
+        char* last_arg = args[num_arg];
+        if (strcmp(last_arg, "&") == 0){
+            args[num_arg] = NULL;
+            num_arg--;
+            background_process = true;
+        }
+        else if (last_arg[strlen(last_arg) - 1] == '&'){
+            last_arg[strlen(last_arg) - 1] = '\0';
+            background_process = true;
+        }
+    }
 
 /*************************************************/
 // Built in Commands PLEASE NOTE NOT ALL REQUIRED
@@ -58,6 +73,10 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     // also saving previous location in previous_pwd in case there is new location
     else if (!strcmp(cmd, "cd") )
 	{
+    	// if no arg stay in the same dir
+    	if (num_arg == 0 ){
+    		return 0;
+    	}
         if (num_arg>1){
             strcpy(cmdString, "cd: too many arguments");
             illegal_cmd = true;
@@ -90,7 +109,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     //printing jobs sorted by job_id also cleaning irrelevant jobs before
     else if (!strcmp(cmd, "jobs"))
     {
-        clean_jobs(jobs);
+        clean_jobs_vector(jobs);
         sort_jobs(jobs);
         print_jobs(jobs);
 
@@ -152,7 +171,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 return 1;
         	}
         	int jid = std::atoi(args[1]);
-        	fg_job = search_remove_job(jobs,jid);
+        	fg_job = search_and_remove_job(jobs,jid);
         	if (fg_job.job_id ==0){ //job_id is a positive num
                 cerr << "smash error: fg: job-id " << jid <<" does not exist" << endl;
         		return 1;
@@ -165,7 +184,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
                 cerr <<"smash error: fg: jobs list is empty" << endl;
                 return 1;
         	}
-        	fg_job = search_remove_job(jobs,0);
+        	fg_job = search_and_remove_job(jobs,0);
 
         }
 
@@ -240,7 +259,10 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     else if (!strcmp(cmd, "quit"))
     {
     	if((num_arg >0 )&& (!strcmp (args[1], "kill"))){
-            remove_jobs(jobs);
+            if(remove_all_jobs(jobs)){ // if failed to remove jobs return 1
+            	return 1;
+            }
+            exit(0);
     	}
     	else{
         std::vector<Job_class>().swap(jobs); // releasing memory
@@ -293,7 +315,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 	/*************************************************/
 	else // external command
 	{
- 		ExeExternal(args, cmdString, num_arg, jobs);
+ 		ExeExternal(args, cmdString, num_arg, jobs,background_process);
 	 	return 0;
 	}
 	if (illegal_cmd == true)
@@ -309,23 +331,9 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
 // Parameters: external command arguments, external command string
 // Returns: void
 //**************************************************************************************
-void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<Job_class>& jobs)
+void ExeExternal(char *args[MAX_ARG], char* cmdString, int num_arg, std::vector<Job_class>& jobs, bool background_process)
 {
 
-    bool background_process = false;
-    if (num_arg>0){
-        //check if background process
-        char* last_arg = args[num_arg];
-        if (strcmp(last_arg, "&") == 0){
-            args[num_arg] = NULL;
-            num_arg--;
-            background_process = true;
-        }
-        else if (last_arg[strlen(last_arg) - 1] == '&'){
-            last_arg[strlen(last_arg) - 1] = '\0';
-            background_process = true;
-        }
-    }
 
     pid_t pID;
         switch(pID = fork())
