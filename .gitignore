@@ -21,7 +21,8 @@ hw1/smash
 # Fortran module files
 *.mod
 *.smod
-
+check_file.cpp
+*.md
 # Compiled Static libraries
 *.lai
 *.la
