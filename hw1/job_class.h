@@ -38,9 +38,9 @@ class Job_class {
 
 int next_job_id(std::vector<Job_class>& jobs);
 void sort_jobs(std::vector<Job_class>& jobs);
-void clean_jobs(std::vector<Job_class>& jobs);
-void remove_jobs(std::vector<Job_class>& jobs);
-Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id);
+void clean_jobs_vector(std::vector<Job_class>& jobs);
+int remove_all_jobs(std::vector<Job_class>& jobs);
+Job_class search_and_remove_job(std::vector<Job_class>& jobs, int job_id);
 void print_jobs(std::vector<Job_class>& jobs, int pid = 0);
 int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped_check = 0);
 int get_max_stopped(std::vector<Job_class>& jobs);

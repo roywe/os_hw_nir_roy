@@ -76,22 +76,20 @@ int next_job_id(std::vector<Job_class>& jobs){
 
 }
 // removes all jobs from jobs vector, at first send SIGTEM, if doesnt work send SIGKILL
-void remove_jobs(std::vector<Job_class>& jobs){
+int remove_all_jobs(std::vector<Job_class>& jobs){
     //TODO: go over this function - what is the return here - why failure etc...
     // nir
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
         if ( kill(it->process_id, SIGTERM) == -1 ) {  // send SIGTERM signal
-           	perror("smash error: kill failed");
-//        	return FAILURE;
+           	cerr <<"smash error: kill failed" << endl;
+           	return 1;
         }
           	cout << "[" << it->job_id << "] " << it->command << " - Sending SIGTERM... " << flush ;
           	sleep(5);
         	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
          	if (result == -1) {
-          		if ( errno != ESRCH) {
-         			perror("smash error: waitpid failed");
-//           			return FAILURE;
-        		}
+         		cerr <<"smash error: waitpid failed" << endl;
+         		return 1;
           	}
 			else if (result ) // if the process was terminated the remove from list and go to the next job
 			{
@@ -100,18 +98,16 @@ void remove_jobs(std::vector<Job_class>& jobs){
 				continue;
 			}
 			if ( kill(it->process_id, SIGKILL) == -1 ) { // if process was not terminated send signal SIGKILL
-				perror("smash error: kill failed");
-//				return FAILURE;
+				cerr << "smash error: kill failed" << endl;
+				return 1;
 			}
 			it = jobs.erase(it);
 			cout << "(5 sec passed) Sending SIGKILL... Done." << endl;
     }
-    exit(0);
+    return 0;
 }
 // removes jobs which have finished from the jobs vector
-void clean_jobs(std::vector<Job_class>& jobs){
-    //TODO: check names to diffrentiate between clean jobs, remove search job, remove jobs
-    //nir
+void clean_jobs_vector(std::vector<Job_class>& jobs){
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
     	pid_t result = waitpid(it->process_id, NULL, WNOHANG);
 
@@ -126,7 +122,7 @@ void clean_jobs(std::vector<Job_class>& jobs){
 
 // Function to search and remove job by job id,
 // if job id is zero removes the highest job id from jobs vector
-Job_class search_remove_job(std::vector<Job_class>& jobs, int job_id) {
+Job_class search_and_remove_job(std::vector<Job_class>& jobs, int job_id) {
 
     // if job_id zero find max job id
 	if (job_id == 0) {
