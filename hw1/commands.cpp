@@ -39,7 +39,7 @@ int ExeCmd(std::vector<Job_class>& jobs, char* lineSize, char* cmdString)
     //printing pid to stdout
     if (!strcmp(cmd, "showpid"))
     {
-        pid_t process_id;
+        pid_t process_id ;
         process_id = getpid();
         printf("smash pid is %d\n", process_id);
     }
