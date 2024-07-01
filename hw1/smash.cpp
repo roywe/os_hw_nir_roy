@@ -42,9 +42,6 @@ int main(int argc, char *argv[])
     sigaction(SIGTSTP, &act_TSTP, NULL);
 
 	/************************************/
-
-    //TODO: check warnings and delete
-    // nir
 	
 	L_Fg_Cmd =(char*)malloc(sizeof(char)*(MAX_LINE_SIZE+1));
 	if (L_Fg_Cmd == NULL) 
