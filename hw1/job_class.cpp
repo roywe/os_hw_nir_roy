@@ -32,6 +32,7 @@ Job_class::~Job_class(){
 
 }
 
+//getters
 int Job_class::get_job_id(){
     return this->job_id;
 }
@@ -40,6 +41,7 @@ int Job_class::get_process_id(){
     return this->process_id;
 }
 
+//show job as in the convention of the exercise
 void Job_class::show_job() {
     double seconds_elapsed;
     time_t t;
@@ -56,9 +58,7 @@ bool Job_class::compare_jobs(const Job_class& other){
     return this->job_id > other.job_id;
 }
 
-//TODO: documentation - everywhere!
-//roy + nir
-
+//for jobs vector find new max id
 int next_job_id(std::vector<Job_class>& jobs){
     int max_job_id = 1;
     int size = jobs.size();
@@ -77,8 +77,6 @@ int next_job_id(std::vector<Job_class>& jobs){
 }
 // removes all jobs from jobs vector, at first send SIGTEM, if doesnt work send SIGKILL
 int remove_all_jobs(std::vector<Job_class>& jobs){
-    //TODO: go over this function - what is the return here - why failure etc...
-    // nir
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ) {
         if ( kill(it->process_id, SIGTERM) == -1 ) {  // send SIGTERM signal
            	cerr <<"smash error: kill failed" << endl;
@@ -136,11 +134,8 @@ Job_class search_and_remove_job(std::vector<Job_class>& jobs, int job_id) {
         // Iterate through the vector to find the job with the given job_id
     for (std::vector<Job_class>::iterator it = jobs.begin(); it != jobs.end(); ++it) {
     	if (it->job_id == job_id) {
-                // Store the job to return
             Job_class found_job = *it;
-                // Remove the job from the vector
             jobs.erase(it);
-                // Return the found job
             return found_job;
     	}
     }
@@ -149,6 +144,7 @@ Job_class search_and_remove_job(std::vector<Job_class>& jobs, int job_id) {
     return Job_class();
 }
 
+//compare between jobs for the sort function
 bool compare_jobs(Job_class& job1,Job_class& job2){
     return job1.get_job_id() < job2.get_job_id();
 }
@@ -170,6 +166,7 @@ void print_jobs(std::vector<Job_class>& jobs, int pid){
     }
 }
 
+//find pid for job_id in the jobs vector, status option for stopped is available
 int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped_check){
     for (size_t i = 0; i < jobs.size(); i++) {
         if (jobs[i].get_job_id() == job_id){
@@ -189,6 +186,7 @@ int get_pid_for_job_number(std::vector<Job_class>& jobs, int job_id, int stopped
     return -1;
 }
 
+//setting status for pid
 void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pid){
     for (size_t i = 0; i < jobs.size(); i++) {
         int current_pid = jobs[i].get_process_id();
@@ -198,6 +196,7 @@ void set_status_for_pid(std::vector<Job_class>& jobs, std::string status, int pi
     }
 }
 
+//get maximum job that stopped returning its pid
 int get_max_stopped(std::vector<Job_class>& jobs){
     int max_pid = -1;
     for (size_t i = 0; i < jobs.size(); i++) {
