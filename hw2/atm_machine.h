@@ -5,7 +5,7 @@
 #ifndef OS_HW_NIR_ROY_ATM_MACHINE_H
 #define OS_HW_NIR_ROY_ATM_MACHINE_H
 
-#include <bank_obj.h>
+#include <bank.h>
 #include <string.h>
 #include <fstream>
 #include <iostream>
