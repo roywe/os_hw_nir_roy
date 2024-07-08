@@ -11,8 +11,11 @@ $(TARGET): $(OBJS)
 	$(CCLINK) $(CFLAGS) -o $(TARGET) $(OBJS)
 # Creating the object files
 account.o: account.cpp account.h
+	$(CCLINK) $(CFLAGS) -c account.cpp
 atm_machine.o: atm_machine.cpp atm_machine.h
+	$(CCLINK) $(CFLAGS) -c atm_machine.cpp
 bank.o: bank.cpp bank.h
+	$(CCLINK) $(CFLAGS) -c bank.cpp
 # Cleaning old files before new make
 clean:
 	$(RM) $(TARGET) *.o *~ "#"* core.*
