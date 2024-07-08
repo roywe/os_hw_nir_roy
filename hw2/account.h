@@ -18,8 +18,8 @@ public:
     int get_password();
     int get_current_balance();
     bool check_password(int other_password); //TODO: this action will be before all the other because found in 2 - 6
-    pthread_mutex_t lock_write;
-    pthread_mutex_t lock_read;
+//    pthread_mutex_t lock_write;
+//    pthread_mutex_t lock_read;
 
 private:
     int account_id;

@@ -6,7 +6,7 @@
 #define OS_HW_NIR_ROY_BANK_H
 #include <map>
 #include <account.h>
-
+#include <iostream>
 //bank - can be an object inside atm machine or just a vector of accounts
 //bank should implement - show accounts , lower account balance, add account, add_balance_to_account, delete account, move accounts
 // searching account + call account command
@@ -14,7 +14,7 @@
 class Bank {
     //TODO: for every action check first the bank lock and then move to specific lock
     Bank();
-    add_account(int atm_id, int account_id, int password, int current_balance); //TODO: validate params - un negetive balance, 4 digit password, account id that not strting with 0 and 4 digits
+    bool add_account(int atm_id, int account_id, int password, int current_balance); //TODO: validate params - un negetive balance, 4 digit password, account id that not strting with 0 and 4 digits
     //TODO - also print when the account succeed
     ~Bank();
     bool change_balance(int atm_id, int account_id, int amount); //TODO - locking the account id - lock account read+write mutex + bank_lock
@@ -30,9 +30,9 @@ class Bank {
     void print_all_accounts(); // it happened each 0.5 s  (locking all accounts) - we will need thread for this
 
 private:
-    std::map<std::int, Account> bank;
+    std::map<int, Account> bank;
 //    std::map<std::int, std::vector<mutex_something> > locks; // first vector index will be reading, second for writing - we can also have the mutexes inside each account
-    mutex_something bank_lock // for lower_balance and print accounts
+//    mutex_something bank_lock // for lower_balance and print accounts
 
 };
 
