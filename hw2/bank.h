@@ -9,7 +9,6 @@
 #include <iostream>
 #include <fstream>
 
-
 extern std::ofstream log;
 //bank - can be an object inside atm machine or just a vector of accounts
 //bank should implement - show accounts , lower account balance, add account, add_balance_to_account, delete account, move accounts
