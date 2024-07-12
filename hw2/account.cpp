@@ -53,7 +53,7 @@ bool Account::check_password(int other_password){
 int Account::withdrawn_by_per(float randomPer){
     int commission = this->current_balance * randomPer/ 100;
     this->current_balance = this->current_balance - commission;
-    return this->current_balance;
+    return commission;
 }
 
 void Account::print_account() const{
