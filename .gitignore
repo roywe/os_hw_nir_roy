@@ -7,7 +7,8 @@
 *.o
 *.obj
 hw1/smash
-
+hw2/bank
+*.c
 # Precompiled Headers
 *.gch
 *.pch
