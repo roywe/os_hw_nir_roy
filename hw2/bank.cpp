@@ -11,14 +11,14 @@ Bank::Bank(){
     this->bank = {};
 }
 bool Bank::add_account(int atm_id, int account_id, int password, int current_balance){
-    if(10000> password and password > 999 and 10000> account_id and account_id > 999 and current_balance>=0){
+    if(true){
 //        Account new_ac = Account(account_id, password, current_balance);
 //        this->bank.insert ( std::pair<int,Account>(account_id,new_ac) );
         this->bank[account_id] = Account(account_id, password, current_balance);
-        cout << atm_id << " : New account id is "<< account_id <<" with password "<< password <<" and initial balance "<< current_balance <<endl;
+        log << atm_id << " : New account id is "<< account_id <<" with password "<< password <<" and initial balance "<< current_balance <<endl;
         return true;
     }
-    cout << "Error "<< atm_id <<" : Your transaction failed – account with the same id exists" <<endl;
+    log << "Error "<< atm_id <<" : Your transaction failed – account with the same id exists" <<endl;
     return false;
 }
 //TODO: validate params - un negetive balance, 4 digit password, account id that not strting with 0 and 4 digits
@@ -121,10 +121,18 @@ int main (int argc, char *argv[]) {
         std::cerr << "Error opening input file!" << std::endl;
         exit(1);
     }
+    std::ofstream log;
+    log.open(log_file);
+	if (!log) {
+		std::cerr << "Error opening file: " << log_file << std::endl;
+		return 1;
+	}
+
+
     std::string atm_command_file = argv[1];
     ATM atm0 = ATM(0, bank, atm_command_file);
     atm0.run();
-
+    log.close();
 
 }
 

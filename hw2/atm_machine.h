@@ -12,8 +12,10 @@
 #include <vector>
 #define MAX_ARG 5
 using namespace std;
+std::vector<std::string> splitString(const std::string& str, char delimiter);
 
 extern std::string log_file;
+extern std::ofstream log;
 
 class ATM {
 
@@ -31,6 +33,5 @@ public :
     std::vector<std::string> commands;
 
 };
-
 
 #endif //OS_HW_NIR_ROY_ATM_MACHINE_H
