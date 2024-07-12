@@ -30,93 +30,74 @@ int ATM::run(){
 
 
     for (size_t i = 0; i < this->commands.size(); ++i) {
-        std::cout <<"Num :" << i << " is: "<<commands[i] << endl;
+//        std::cout <<"Num :" << i << " is: "<<commands[i] << endl;
 		    std::vector<std::string> tempStr = splitString(commands[i], ' ');
 		    std::string current_command;
 
 		    string args[5]= {""};
 //	        string cmd = tempStr[0];
 		for (size_t j = 0; j < tempStr.size(); ++j) {
-			cout << " arg : " << tempStr[j] << endl;
 			args[j] = tempStr[j];
 
 		}
-//    }
-//    while (atm_command_index < this->commands.size()){
-//        atm_command_index++;
-//        current_command = this->commands[atm_command_index];
-//        cout<< "command:"<<current_command <<endl;
-//        int i = 0, num_arg = 0;
-//        char* args[5];
-        //this is the max args - we need that for each command to get the arguments, so maybe it will be better to create function that return char*
-        //doing the rows below
-//        char *cstr = new char[current_command.size() + 1];
-//        strcpy(current_command, current_command.data());
-//        std::vector<std::string> tokens;
-//        std::stringstream ss(current_command);
-//
-//        while (std::getline(ss, token, delimiter)) {
-//            tokens.push_back(token);
-//        }
-//        char *cstr = (char *)current_command.c_str();//current_command.c_str();
-//        printf("%s-",cstr);
-
-//        if (cmd == NULL)
-//            printf("%s","handle void command");
-//            //TODO: handle wrong cmd - by the question it is fine but for start to see that it is working for us we can use it
-//        args[0] = cmd;
-//        for (i=1; i<MAX_ARG; i++)
-//        {
-//            args[i] = strtok(NULL, delimiters);
-//            if (args[i] != NULL)
-//                num_arg++;
-//
-//        }
-
 
         //till here is the args start
         const char* cmd = args[0].c_str();
         int account_id = atoi(args[1].c_str());
         int password = atoi(args[2].c_str());
+//        this->bank.print_all_accounts();
         if (!strcmp(cmd, "O")){
             this->bank.add_account(this->atm_id, account_id, password, atoi(args[3].c_str()));
         }
         else{
-			if(this->bank.check_password(this->atm_id, account_id, password)){
+			if(not this->bank.check_password(this->atm_id, account_id, password)){
                 log << "Error " << this->atm_id <<": Your transaction failed – password for account id " << account_id << " is incorrect" <<endl;
             }
 
 			else if (!strcmp(cmd, "D")){
-                this->bank.change_balance(this->atm_id, account_id, atoi(args[3].c_str()));
-//				deposit(account_id,password,atoi(args[3]));
+                int amount = atoi(args[3].c_str());
+                int balance_after = this->bank.deposit(this->atm_id, account_id, amount);
+//                Account <id> new balance is <balance> after <amount> $ was deposited
+                log << this->atm_id<< ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was deposited" <<endl;
 			}
 			else if (!strcmp(cmd, "W")){
-                this->bank.change_balance(this->atm_id, account_id, -atoi(args[3].c_str()));
-//				withdraw(account_id,password,atoi(args[3]));
+                int amount = atoi(args[3].c_str());
+                int balance_after = this->bank.withdrawn(this->atm_id, account_id, amount);
+                if (balance_after < 0){
+                    log << "Error " << this->atm_id <<": Your transaction failed - account id "<< account_id<< " balance is lower than " << amount << endl;
+                }
+                else{
+                    log << this->atm_id << ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was withdrawn" <<endl;
+                }
+//                Account <id> new balance is <balance> after <amount> $ was deposited
+
 			}
 			else if (!strcmp(cmd, "B")){
-                this->bank.show_balance(this->atm_id, account_id);
-//				check_balance(account_id,password);
+                int balance = this->bank.show_balance(this->atm_id, account_id);
+                log << this->atm_id << ": Account " << account_id << " balance is " << balance<<endl;
 			}
 			else if (!strcmp(cmd, "Q")){
-                this->bank.delete_account(this->atm_id, account_id);
+                int balance = this->bank.delete_account(this->atm_id, account_id);
+                log << this->atm_id << ": Account " << account_id << " is now closed. Balance was " << balance<<endl;
 //				close_account(account_id,password);
 			}
 			else if (!strcmp(cmd, "T")){
-                this->bank.move_between_accounts(this->atm_id, account_id,atoi(args[3].c_str()), atoi(args[4].c_str()));
-//                this->bank.delete_account(this->atm_id, account_id));
-//				transfer(account_id,password,atoi(args[3]),atoi(args[4]));
+                int target_account = atoi(args[3].c_str());
+                int amount = atoi(args[4].c_str());
+                this->bank.move_between_accounts(this->atm_id, account_id,target_account, amount);
 			}
 			else{
 				//TODO: we can assume that every command is legal by the question...
 				printf("%s","wrong command");
 			}
 
-
-
         }
 
     }
+    this->bank.print_all_accounts();
+    this->bank.lower_random_balance();
+    this->bank.print_all_accounts();
+
     return 1;
 
 }

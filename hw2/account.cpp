@@ -3,7 +3,7 @@
 //
 
 #include "account.h"
-
+using namespace std;
 
 Account::Account(){
 
@@ -21,20 +21,20 @@ Account::Account(const Account& other){
 Account::~Account(){
 
 }
-bool Account::change_balance(int amount){
-    if (amount >= 0){
-        this->current_balance = this->current_balance + amount;
-        return true;
+int Account::deposit(int amount){
+    this->current_balance = this->current_balance + amount;
+    return current_balance;
+}
+
+int Account::withdrawn(int amount){
+    if (this->current_balance - amount < 0){
+        return -1;
     }
     else{
-        if (this->current_balance + amount < 0){
-            return false;
-        }
-        else{
-            this->current_balance = this->current_balance + amount;
-            return true;
-        }
+        this->current_balance = this->current_balance - amount;
+        return this->current_balance;
     }
+
 }
 
 int Account::get_account_id(){
@@ -48,4 +48,14 @@ int Account::get_current_balance(){
 }
 bool Account::check_password(int other_password){
     return this->password == other_password;
+}
+
+int Account::withdrawn_by_per(float randomPer){
+    int commission = this->current_balance * randomPer/ 100;
+    this->current_balance = this->current_balance - commission;
+    return this->current_balance;
+}
+
+void Account::print_account() const{
+    cout << "Account "<< this->account_id << ": Balance - "<< this->current_balance << " $, Account Password - "<< this->password << endl;
 }
