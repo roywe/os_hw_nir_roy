@@ -36,6 +36,7 @@ public:
     void lower_random_balance(); // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
 
     void print_all_accounts(); // it happened each 0.5 s  (locking all accounts) - we will need thread for this
+    std::map<int, Account> accounts;
     std::map<int, Account> bank;
 //    std::map<std::int, std::vector<mutex_something> > locks; // first vector index will be reading, second for writing - we can also have the mutexes inside each account
 //    mutex_something bank_lock // for lower_balance and print accounts

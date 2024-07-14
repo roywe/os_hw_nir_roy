@@ -11,7 +11,10 @@ Bank::Bank(){
 //    this->bank = {};
 }
 bool Bank::add_account(int atm_id, int account_id, int password, int current_balance){
-    if(10000> password and password > 999 and current_balance>=0){
+    for (std::map<int, Account>::iterator it = bank.begin(); it != bank.end(); ++it) {
+        std::cout << "Key: " << it->first << ", Value: " << it->second.get_account_id() << std::endl;
+    }
+    if(bank.find(account_id) == bank.end()){
 //        Account new_ac = Account(account_id, password, current_balance);
 //        this->bank.insert ( std::pair<int,Account>(account_id,new_ac) );
         this->bank[account_id] = Account(account_id, password, current_balance);
@@ -88,7 +91,7 @@ void Bank::lower_random_balance(){
     std::srand(std::time(nullptr));
     float randomPer = std::rand() % 5 + 1;
     printf("per: %f was chosen",randomPer);
-    for (auto& pair : this->bank) {
+    for (auto& pair : this->accounts) {
         int commission = pair.second.withdrawn_by_per(randomPer);
         log << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
     }
@@ -99,7 +102,7 @@ void Bank::lower_random_balance(){
 void Bank::print_all_accounts(){
 //    for (auto it = this->bank.begin(); it != this->bank.end(); ++it)
 //        std::cout << it->get_account_id() << '\n';
-    for (const auto& pair : this->bank) {
+    for (const auto& pair : this->accounts) {
         pair.second.print_account();
     }
 
