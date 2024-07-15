@@ -19,11 +19,11 @@ ATM::ATM(int atm_id, Bank bank, std::string file_name){
     }
     file1_content.close();
     this->bank = bank;
-
-
-
-
 }
+
+
+
+
 
 int ATM::run(){
 //    size_t atm_command_index = 0;
@@ -47,44 +47,51 @@ int ATM::run(){
         int password = atoi(args[2].c_str());
 //        this->bank.print_all_accounts();
         if (!strcmp(cmd, "O")){
-            this->bank.add_account(this->atm_id, account_id, password, atoi(args[3].c_str()));
+        	open_account(account_id,password, atoi(args[3].c_str()));
+//        	this->bank.add_account(this->atm_id, account_id, password, atoi(args[3].c_str()));
         }
-        else{
-			if(not this->bank.check_password(this->atm_id, account_id, password)){
-                log << "Error " << this->atm_id <<": Your transaction failed – password for account id " << account_id << " is incorrect" <<endl;
-            }
+//        else{
+//			if(not this->bank.check_password(this->atm_id, account_id, password)){
+//                log << "Error " << this->atm_id <<": Your transaction failed – password for account id " << account_id << " is incorrect" <<endl;
+//            }
 
 			else if (!strcmp(cmd, "D")){
+//				deposit (int acc_num, int password, int amount )
                 int amount = atoi(args[3].c_str());
-                int balance_after = this->bank.deposit(this->atm_id, account_id, amount);
+				deposit(account_id,password,amount);
+//                int balance_after = this->bank.deposit(this->atm_id, account_id, amount);
 //                Account <id> new balance is <balance> after <amount> $ was deposited
-                log << this->atm_id<< ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was deposited" <<endl;
+//                log << this->atm_id<< ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was deposited" <<endl;
 			}
 			else if (!strcmp(cmd, "W")){
                 int amount = atoi(args[3].c_str());
-                int balance_after = this->bank.withdrawn(this->atm_id, account_id, amount);
-                if (balance_after < 0){
-                    log << "Error " << this->atm_id <<": Your transaction failed - account id "<< account_id<< " balance is lower than " << amount << endl;
-                }
-                else{
-                    log << this->atm_id << ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was withdrawn" <<endl;
-                }
+//                int balance_after = this->bank.withdrawn(this->atm_id, account_id, amount);
+                withdraw(account_id, password,amount);
+//                if (balance_after < 0){
+//                    log << "Error " << this->atm_id <<": Your transaction failed - account id "<< account_id<< " balance is lower than " << amount << endl;
+//                }
+//                else{
+//                    log << this->atm_id << ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was withdrawn" <<endl;
+//                }
 //                Account <id> new balance is <balance> after <amount> $ was deposited
 
 			}
 			else if (!strcmp(cmd, "B")){
-                int balance = this->bank.show_balance(this->atm_id, account_id);
-                log << this->atm_id << ": Account " << account_id << " balance is " << balance<<endl;
+				check_balance (account_id,password);
+//                int balance = this->bank.show_balance(this->atm_id, account_id);
+//                log << this->atm_id << ": Account " << account_id << " balance is " << balance<<endl;
 			}
 			else if (!strcmp(cmd, "Q")){
-                int balance = this->bank.delete_account(this->atm_id, account_id);
-                log << this->atm_id << ": Account " << account_id << " is now closed. Balance was " << balance<<endl;
-//				close_account(account_id,password);
+//                int balance = this->bank.delete_account(this->atm_id, account_id);
+//                d close_account (acc_num, int password)
+//                log << this->atm_id << ": Account " << account_id << " is now closed. Balance was " << balance<<endl;
+				close_account(account_id,password);
 			}
 			else if (!strcmp(cmd, "T")){
                 int target_account = atoi(args[3].c_str());
                 int amount = atoi(args[4].c_str());
-                this->bank.move_between_accounts(this->atm_id, account_id,target_account, amount);
+                transfer (account_id,password,target_account,amount);
+//                this->bank.move_between_accounts(this->atm_id, account_id,target_account, amount);
 			}
 			else{
 				//TODO: we can assume that every command is legal by the question...
@@ -93,7 +100,7 @@ int ATM::run(){
 
         }
 
-    }
+
     this->bank.print_all_accounts();
     this->bank.lower_random_balance();
     this->bank.print_all_accounts();
@@ -101,7 +108,6 @@ int ATM::run(){
     return 1;
 
 }
-
 
 
 
@@ -122,103 +128,103 @@ std::vector<std::string> splitString(const std::string& str, char delimiter) {
     tokens.push_back(str.substr(start));
 
     return tokens;
+
+
 }
 
 
 
 
 
-
-//
-//void open_account(int acc_num, int password, int balance){
-//	if(bank.accounts[acc_num] != NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account with the same id exists" << endl;
-//		return;
-//	}
-//	Account new_account = account(acc_num,password,balance);
+void ATM::open_account(int acc_num, int password, int balance){
+	if(bank.accounts.find(acc_num) != bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account with the same id exists" << endl;
+		return;
+	}
+	bank.accounts[acc_num] = Account(acc_num,password,balance);
 //	bank.insert_account(new_account);
-//	log << this->atm_id <<": New account id is " << acc_num << " with password " << password << " and initial balance " << balance << endl;
-//
-//}
-//void deposit (int acc_num, int password, int amount ){
-//	if(bank.accounts[acc_num] == NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-//		return;
-//	}
-//	if(bank.accounts[acc_num].get_password != password){
-//		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-//		return;
-//	}
-//	bank.accounts[acc_num].change_balance(amount);
-//	log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was deposited" << endl;
-//}
-//
-//void withdraw (int acc_num, int password, int amount ){
-//	if(bank.accounts[acc_num] == NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-//		return;
-//	}
-//	if(bank.accounts[acc_num].get_password != password){
-//		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-//		return;
-//	}
-//	if(bank.accounts[acc_num].get_current_balance < amount){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num << " balance is lower than " << amount <<endl;
-//		return;
-//	}
-//	bank.accounts[acc_num].change_balance(-amount);
-//	log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was withdrawn" << endl;
-//
-//
-//}
-//void check_balance (int acc_num, int password){
-//	if(bank.accounts[acc_num] == NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-//		return;
-//	}
-//	if(bank.accounts[acc_num].get_password != password){
-//		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-//		return;
-//	}
-//	log << this->atm_id << ": Account " << acc_num <<" balance is " << bank.accounts[acc_num].get_current_balance() << endl;
-//
-//}
-//
-//void close_account (int acc_num, int password){
-//	if(bank.accounts[acc_num] == NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-//		return;
-//	}
-//	if(bank.accounts[acc_num].get_password != password){
-//		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-//		return;
-//	}
-//	int temp_balance =  bank.accounts[acc_num].get_current_balance();
-//	bank.accounts.remove(acc_num);
-//	log << this->atm_id << ": Account " << acc_num <<" is now closed. Balance was " << temp_balance << endl;
-//
-//}
-//void transfer (int source_acc, int password,int dest_acc, int amount ){
-//	if(bank.accounts[source_acc] == NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << source_acc <<" does not exist" << endl;
-//		return;
-//	}
-//	if(bank.accounts[dest_acc] == NULL){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << dest_acc <<" does not exist" << endl;
-//		return;
-//	}
-//	if(bank.accounts[source_acc].get_password != password){
-//		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << source_acc << " is incorrect" << endl;
-//		return;
-//	}
-//	if(bank.accounts[source_acc].get_current_balance < amount){
-//		log << "Error" << this->atm_id << ": Your transaction failed – account id " << source_acc << " balance is lower than " << amount <<endl;
-//		return;
-//	}
-//	bank.accounts[source_acc].change_balance(-amount);
-//	bank.accounts[dest_acc].change_balance(amount);
-//	log <<this->atm_id << ": Transfer "<< amount <<" from account "<<source_acc <<" to account "<<source_acc <<" new account balance is "<<bank.accounts[source_acc].get_current_balance <<" new target account balance is "<<bank.accounts[source_acc].get_current_balance << endl;
-//
-//
-//
-//}
+	log << this->atm_id <<": New account id is " << acc_num << " with password " << password << " and initial balance " << balance << endl;
+
+}
+void ATM::deposit (int acc_num, int password, int amount ){
+	if(bank.accounts.find(acc_num) == bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
+		return;
+	}
+	if(bank.accounts[acc_num].get_password() != password){
+		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
+		return;
+	}
+	bank.accounts[acc_num].deposit(amount);
+	log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was deposited" << endl;
+}
+
+void ATM::withdraw (int acc_num, int password, int amount ){
+	if(bank.accounts.find(acc_num) == bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
+		return;
+	}
+	if(bank.accounts[acc_num].get_password() != password){
+		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
+		return;
+	}
+	if(bank.accounts[acc_num].get_current_balance() < amount){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num << " balance is lower than " << amount <<endl;
+		return;
+	}
+	bank.accounts[acc_num].withdrawn(amount);
+	log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was withdrawn" << endl;
+
+
+}
+void ATM::check_balance (int acc_num, int password){
+	if(bank.accounts.find(acc_num) == bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
+		return;
+	}
+	if(bank.accounts[acc_num].get_password() != password){
+		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
+		return;
+	}
+	log << this->atm_id << ": Account " << acc_num <<" balance is " << bank.accounts[acc_num].get_current_balance() << endl;
+
+}
+
+void ATM::close_account (int acc_num, int password){
+	if(bank.accounts.find(acc_num) == bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
+		return;
+	}
+	if(bank.accounts[acc_num].get_password() != password){
+		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
+		return;
+	}
+	int temp_balance =  bank.accounts[acc_num].get_current_balance();
+	bank.accounts.erase(acc_num);
+	log << this->atm_id << ": Account " << acc_num <<" is now closed. Balance was " << temp_balance << endl;
+
+}
+void ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
+	if(bank.accounts.find(source_acc) == bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << source_acc <<" does not exist" << endl;
+		return;
+	}
+	if(bank.accounts.find(dest_acc) == bank.accounts.end()){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << dest_acc <<" does not exist" << endl;
+		return;
+	}
+	if(bank.accounts[source_acc].get_password() != password){
+		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << source_acc << " is incorrect" << endl;
+		return;
+	}
+	if(bank.accounts[source_acc].get_current_balance() < amount){
+		log << "Error" << this->atm_id << ": Your transaction failed – account id " << source_acc << " balance is lower than " << amount <<endl;
+		return;
+	}
+	bank.accounts[source_acc].withdrawn(amount);
+	bank.accounts[dest_acc].deposit(amount);
+	log <<this->atm_id << ": Transfer "<< amount <<" from account "<<source_acc <<" to account "<<source_acc <<" new account balance is "<<bank.accounts[source_acc].get_current_balance() <<" new target account balance is "<<bank.accounts[dest_acc].get_current_balance() << endl;
+
+
+
+}

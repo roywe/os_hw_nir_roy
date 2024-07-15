@@ -21,21 +21,22 @@ class Bank {
 public:
     //TODO: for every action check first the bank lock and then move to specific lock
     Bank();
-    bool add_account(int atm_id, int account_id, int password, int current_balance); //TODO: validate params - un negetive balance, 4 digit password, account id that not strting with 0 and 4 digits
+//    bool add_account(int atm_id, int account_id, int password, int current_balance); //TODO: validate params - un negetive balance, 4 digit password, account id that not strting with 0 and 4 digits
     //TODO - also print when the account succeed
     ~Bank();
-    bool deposit(int atm_id, int account_id, int amount); //TODO - locking the account id - lock account read+write mutex + bank_lock
-    bool withdrawn(int atm_id, int account_id, int amount); //TODO - locking the account id - lock account read+write mutex + bank_lock
-    bool check_password(int atm_id, int account_id, int other_password); //TODO: this action will be before all the other because found in 2 - 6 - maybe will be good to add atm_id to action..
+//    bool deposit(int atm_id, int account_id, int amount); //TODO - locking the account id - lock account read+write mutex + bank_lock
+//    bool withdrawn(int atm_id, int account_id, int amount); //TODO - locking the account id - lock account read+write mutex + bank_lock
+//    bool check_password(int atm_id, int account_id, int other_password); //TODO: this action will be before all the other because found in 2 - 6 - maybe will be good to add atm_id to action..
     // also we dont have to lock in order to check
-    int show_balance(int atm_id, int account_id); //TODO: need to lock account becasue there are many cases that it can change - lock account write mutex + bank_lock
-    int delete_account(int atm_id, int account_id); //TODO: need to lock account because if moving amount the it is not good - lock account write+read mutex + bank_lock
-    bool move_between_accounts(int atm_id, int source_account,int target_account, int balance); // the action of the movement and print should be done atomically
+//    int show_balance(int atm_id, int account_id); //TODO: need to lock account becasue there are many cases that it can change - lock account write mutex + bank_lock
+//    int delete_account(int atm_id, int account_id); //TODO: need to lock account because if moving amount the it is not good - lock account write+read mutex + bank_lock
+//    bool move_between_accounts(int atm_id, int source_account,int target_account, int balance); // the action of the movement and print should be done atomically
     //TODO: need to lock account a from reading+writing+bank_lock and lock the other from reading - sort the locks by ids size (to avoid deadlock)
 
     void lower_random_balance(); // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
 
     void print_all_accounts(); // it happened each 0.5 s  (locking all accounts) - we will need thread for this
+    std::map<int, Account> accounts;
     std::map<int, Account> bank;
 //    std::map<std::int, std::vector<mutex_something> > locks; // first vector index will be reading, second for writing - we can also have the mutexes inside each account
 //    mutex_something bank_lock // for lower_balance and print accounts
