@@ -2,7 +2,7 @@
 CC = g++ -g
 
 CFLAGS = -std=c++11 -Wall -Werror -pedantic-errors -DNDEBUG
-CCLINK = $(CC)
+CCLINK = $(CC) -pthread
 TARGET = bank
 OBJS = bank.o atm_machine.o account.o read_write_lock.o
 RM = rm -f
