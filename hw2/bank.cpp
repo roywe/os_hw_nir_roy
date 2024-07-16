@@ -111,8 +111,25 @@ void Bank::print_all_accounts(){
 
 
 
+void* work_wrap(void* atm) {
+    ATM* atm_ptr = static_cast<ATM*>(atm);
+    atm_ptr->run();
+	//pthread_detach(pthread_self());
+    pthread_exit(NULL);
+}
 
+void* print_wrap(void* bank) {
+    Bank* bankPtr = static_cast<Bank*>(bank);
+    bankPtr->print_all_accounts();
+    pthread_exit(NULL);
+	//pthread_detach(pthread_self());
+}
 
+void* take_comm(void* bank) {
+    Bank* bankPtr = static_cast<Bank*>(bank);
+    bankPtr->lower_random_balance();
+    pthread_exit(NULL);
+}
 
 
 int main (int argc, char *argv[]) {
@@ -157,12 +174,49 @@ int main (int argc, char *argv[]) {
 		std::cerr << "Error opening file: " << log_file << std::endl;
 		return 1;
 	}
+	pthread_t *atm_threads = new pthread_t[argc -1];
+	pthread_t comission_threads;
+	pthread_t print_thread;
+	vector <ATM> atm_arr;
+	for (int i = 0; i<argc -1; ++i){
+		ATM atm =ATM(i,bank,argv[i+1]);
+		atm_arr.push_back(atm);
+//		cout << "print here1" << endl;
+	}
 
+	for (int i = 0 ; i < argc-1 ; i++) {
+//		cout << "print here2" << endl;
+		if ( pthread_create(&atm_threads[i] , NULL ,work_wrap , &(atm_arr[i]) ) ){
+			perror("Bank error: pthread_create failed");
+			delete[] atm_threads;
+			return 1;
+		}
+	}
+	if (pthread_create(&comission_threads, NULL, take_comm, &bank)){
+		perror("Bank error: pthread create failed");
+		delete[] atm_threads;
+		return 1;
+	}
+	if (pthread_create(&print_thread, NULL, print_wrap, &bank)){
+		perror("Bank error: pthread create failed");
+		delete[] atm_threads;
+		return 1;
+	}
 
-    std::string atm_command_file = argv[1];
-    ATM atm0 = ATM(0, bank, atm_command_file);
-    atm0.run();
+	for (int i = 0; i<argc -1; ++i){
+//		cout << "print here3" << endl;
+		pthread_join(atm_threads[i], NULL);
+	}
+
+//	cout << "print here" << endl;
+//	log<< "test" << endl;
+
+//    std::string atm_command_file = argv[1];
+//    ATM atm0 = ATM(0, bank, atm_command_file);
+//    atm0.run();
     log.close();
+	delete[] atm_threads;
+	return 0;
 
 }
 
