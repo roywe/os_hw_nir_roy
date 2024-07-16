@@ -12,7 +12,7 @@ hw2/bank
 # Precompiled Headers
 *.gch
 *.pch
-
+.idea/*
 # Compiled Dynamic libraries
 *.so
 *.dylib
