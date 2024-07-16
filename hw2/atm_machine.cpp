@@ -31,76 +31,58 @@ int ATM::run(){
 
     for (size_t i = 0; i < this->commands.size(); ++i) {
 //        std::cout <<"Num :" << i << " is: "<<commands[i] << endl;
-		    std::vector<std::string> tempStr = splitString(commands[i], ' ');
-		    std::string current_command;
+		std::vector <std::string> tempStr = splitString(commands[i], ' ');
+		std::string current_command;
 
-		    string args[5]= {""};
+		string args[5] = {""};
 //	        string cmd = tempStr[0];
 		for (size_t j = 0; j < tempStr.size(); ++j) {
 			args[j] = tempStr[j];
 
 		}
 
-        //till here is the args start
-        const char* cmd = args[0].c_str();
-        int account_id = atoi(args[1].c_str());
-        int password = atoi(args[2].c_str());
-//        this->bank.print_all_accounts();
-        if (!strcmp(cmd, "O")){
-        	open_account(account_id,password, atoi(args[3].c_str()));
-//        	this->bank.add_account(this->atm_id, account_id, password, atoi(args[3].c_str()));
-        }
-//        else{
-//			if(not this->bank.check_password(this->atm_id, account_id, password)){
-//                log << "Error " << this->atm_id <<": Your transaction failed – password for account id " << account_id << " is incorrect" <<endl;
-//            }
+		//till here is the args start
+		const char *cmd = args[0].c_str();
+		int account_id = atoi(args[1].c_str());
+		int password = atoi(args[2].c_str());
+		if (!strcmp(cmd, "O")) {
+			open_account(account_id, password, atoi(args[3].c_str()));
+		} else {
+			//maybe the wise thing will be to open also delete account lock - in which only delete check if one is checking it right now
+			//TODO: what is this syntax? why end?
+			if (bank.accounts.find(account_id) == bank.accounts.end()) {
+				log << "Error" << this->atm_id << ": Your transaction failed – account id " << account_id
+					<< " does not exist" << endl;
+//				return 0;
+			}
 
-			else if (!strcmp(cmd, "D")){
-//				deposit (int acc_num, int password, int amount )
-                int amount = atoi(args[3].c_str());
-				deposit(account_id,password,amount);
-//                int balance_after = this->bank.deposit(this->atm_id, account_id, amount);
-//                Account <id> new balance is <balance> after <amount> $ was deposited
-//                log << this->atm_id<< ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was deposited" <<endl;
-			}
-			else if (!strcmp(cmd, "W")){
-                int amount = atoi(args[3].c_str());
-//                int balance_after = this->bank.withdrawn(this->atm_id, account_id, amount);
-                withdraw(account_id, password,amount);
-//                if (balance_after < 0){
-//                    log << "Error " << this->atm_id <<": Your transaction failed - account id "<< account_id<< " balance is lower than " << amount << endl;
-//                }
-//                else{
-//                    log << this->atm_id << ": Account " << account_id << " new balance is " << balance_after <<" after " << amount << " $ was withdrawn" <<endl;
-//                }
-//                Account <id> new balance is <balance> after <amount> $ was deposited
+			else if (bank.accounts[account_id].get_password() != password) {
+				log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << account_id
+					<< " is incorrect" << endl;
+//				return 0;
+			} else if (!strcmp(cmd, "D")) {
+				int amount = atoi(args[3].c_str());
+				deposit(account_id, password, amount);
+			} else if (!strcmp(cmd, "W")) {
+				int amount = atoi(args[3].c_str());
+				withdraw(account_id, password, amount);
 
-			}
-			else if (!strcmp(cmd, "B")){
-				check_balance (account_id,password);
-//                int balance = this->bank.show_balance(this->atm_id, account_id);
-//                log << this->atm_id << ": Account " << account_id << " balance is " << balance<<endl;
-			}
-			else if (!strcmp(cmd, "Q")){
-//                int balance = this->bank.delete_account(this->atm_id, account_id);
-//                d close_account (acc_num, int password)
-//                log << this->atm_id << ": Account " << account_id << " is now closed. Balance was " << balance<<endl;
-				close_account(account_id,password);
-			}
-			else if (!strcmp(cmd, "T")){
-                int target_account = atoi(args[3].c_str());
-                int amount = atoi(args[4].c_str());
-                transfer (account_id,password,target_account,amount);
-//                this->bank.move_between_accounts(this->atm_id, account_id,target_account, amount);
-			}
-			else{
+			} else if (!strcmp(cmd, "B")) {
+				check_balance(account_id, password);
+			} else if (!strcmp(cmd, "Q")) {
+				close_account(account_id, password);
+			} else if (!strcmp(cmd, "T")) {
+				int target_account = atoi(args[3].c_str());
+				int amount = atoi(args[4].c_str());
+				transfer(account_id, password, target_account, amount);
+			} else {
 				//TODO: we can assume that every command is legal by the question...
-				printf("%s","wrong command");
+				printf("%s", "wrong command");
 			}
 
-        }
+		}
 
-
+	}
     this->bank.print_all_accounts();
     this->bank.lower_random_balance();
     this->bank.print_all_accounts();
@@ -129,102 +111,111 @@ std::vector<std::string> splitString(const std::string& str, char delimiter) {
 
     return tokens;
 
-
 }
 
 
-
-
-
 void ATM::open_account(int acc_num, int password, int balance){
+	// open account on bank - doesn't interupt anything
 	if(bank.accounts.find(acc_num) != bank.accounts.end()){
 		log << "Error" << this->atm_id << ": Your transaction failed – account with the same id exists" << endl;
 		return;
 	}
 	bank.accounts[acc_num] = Account(acc_num,password,balance);
-//	bank.insert_account(new_account);
 	log << this->atm_id <<": New account id is " << acc_num << " with password " << password << " and initial balance " << balance << endl;
-
 }
+
+//TODO - locking the account id - lock account read+write mutex + bank_lock
 void ATM::deposit (int acc_num, int password, int amount ){
-	if(bank.accounts.find(acc_num) == bank.accounts.end()){
-		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-		return;
-	}
-	if(bank.accounts[acc_num].get_password() != password){
-		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-		return;
-	}
+	//lock write for account
+	//	when writing to account bank cant read or write - nobody can write to account
+	bank.write_lock();
+	bank.accounts[acc_num].write_lock();
+
 	bank.accounts[acc_num].deposit(amount);
-	log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was deposited" << endl;
+    log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was deposited" << endl;
+
+	bank.accounts[acc_num].write_unlock();
+	bank.write_unlock();
+//	bank.unlock_bank();
+	//lock write for account
 }
 
-void ATM::withdraw (int acc_num, int password, int amount ){
-	if(bank.accounts.find(acc_num) == bank.accounts.end()){
-		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-		return;
-	}
-	if(bank.accounts[acc_num].get_password() != password){
-		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-		return;
-	}
-	if(bank.accounts[acc_num].get_current_balance() < amount){
-		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num << " balance is lower than " << amount <<endl;
-		return;
-	}
-	bank.accounts[acc_num].withdrawn(amount);
-	log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was withdrawn" << endl;
+//TODO - locking the account id - lock account read+write mutex + bank_lock
+void ATM::withdraw (int acc_num, int password, int amount) {
+	//lock write for account - withdraw - nobody can write to this account etc
+
+	bank.write_lock();
+	bank.accounts[acc_num].write_lock();
+
+    if(bank.accounts[acc_num].get_current_balance() < amount){
+        log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num << " balance is lower than " << amount <<endl;
+        return;
+    }
+    bank.accounts[acc_num].withdrawn(amount);
+    log << this->atm_id << ": Account " << acc_num <<" new balance is " << bank.accounts[acc_num].get_current_balance() <<" after " << amount << "$ was withdrawn" << endl;
+
+	bank.accounts[acc_num].write_unlock();
+	bank.write_unlock();
 
 
 }
+
+
+
+
+//TODO: need to lock account - lock account write mutex..
 void ATM::check_balance (int acc_num, int password){
-	if(bank.accounts.find(acc_num) == bank.accounts.end()){
-		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-		return;
-	}
-	if(bank.accounts[acc_num].get_password() != password){
-		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-		return;
-	}
+
+	bank.read_lock();
+	bank.accounts[acc_num].read_lock();
+
 	log << this->atm_id << ": Account " << acc_num <<" balance is " << bank.accounts[acc_num].get_current_balance() << endl;
 
+	bank.accounts[acc_num].read_unlock();
+	bank.read_unlock();
+
+//	bank.unlock_bank();
 }
 
+//TODO: need to lock account because if moving amount the it is not good - lock account write+read mutex + bank_lock
+//TODO: check that actually erase and return answer if not...
+//need to think what to lock if we delete and someone already got user...
 void ATM::close_account (int acc_num, int password){
-	if(bank.accounts.find(acc_num) == bank.accounts.end()){
-		log << "Error" << this->atm_id << ": Your transaction failed – account id " << acc_num <<" does not exist" << endl;
-		return;
-	}
-	if(bank.accounts[acc_num].get_password() != password){
-		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << acc_num << " is incorrect" << endl;
-		return;
-	}
+	//lock bank, lock user somehow
+//	bank.lock_bank();
 	int temp_balance =  bank.accounts[acc_num].get_current_balance();
 	bank.accounts.erase(acc_num);
 	log << this->atm_id << ": Account " << acc_num <<" is now closed. Balance was " << temp_balance << endl;
 
+//	bank.unlock_bank();
 }
+
+//TODO:   implement lock_account_by_order() //is it before we get them or after... because they can be deleted - maybe adding anothe lock will help
+//getting 2 accounts and locking by account id, another option - get mapping and lock..
+//we need the find to be somehow atomic - maybe external lock will help for this case
+//TODO: need to lock account a from reading+writing+bank_lock and lock the other from reading - sort the locks by ids size (to avoid deadlock)
 void ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
-	if(bank.accounts.find(source_acc) == bank.accounts.end()){
-		log << "Error" << this->atm_id << ": Your transaction failed – account id " << source_acc <<" does not exist" << endl;
-		return;
-	}
+	//
+
 	if(bank.accounts.find(dest_acc) == bank.accounts.end()){
 		log << "Error" << this->atm_id << ": Your transaction failed – account id " << dest_acc <<" does not exist" << endl;
-		return;
-	}
-	if(bank.accounts[source_acc].get_password() != password){
-		log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << source_acc << " is incorrect" << endl;
 		return;
 	}
 	if(bank.accounts[source_acc].get_current_balance() < amount){
 		log << "Error" << this->atm_id << ": Your transaction failed – account id " << source_acc << " balance is lower than " << amount <<endl;
 		return;
 	}
+	bank.write_lock();
+
+	bank.accounts[source_acc].lock_ww_same_order(bank.accounts[dest_acc]);
+
 	bank.accounts[source_acc].withdrawn(amount);
+    //TODO: need to check balance somehow
 	bank.accounts[dest_acc].deposit(amount);
 	log <<this->atm_id << ": Transfer "<< amount <<" from account "<<source_acc <<" to account "<<source_acc <<" new account balance is "<<bank.accounts[source_acc].get_current_balance() <<" new target account balance is "<<bank.accounts[dest_acc].get_current_balance() << endl;
 
+	bank.accounts[source_acc].read_unlock();
 
-
+	bank.accounts[source_acc].unlock_ww_same_order(bank.accounts[dest_acc]);
+	bank.write_unlock();
 }

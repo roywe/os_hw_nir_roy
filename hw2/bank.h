@@ -10,6 +10,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <ctime>
+#include <pthread.h>
 
 extern std::ofstream log;
 //bank - can be an object inside atm machine or just a vector of accounts
@@ -34,10 +35,19 @@ public:
     //TODO: need to lock account a from reading+writing+bank_lock and lock the other from reading - sort the locks by ids size (to avoid deadlock)
 
     void lower_random_balance(); // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
-
+	void read_lock();
+	void read_unlock();
+	void write_lock();
+	void write_unlock();
     void print_all_accounts(); // it happened each 0.5 s  (locking all accounts) - we will need thread for this
     std::map<int, Account> accounts;
-    std::map<int, Account> bank;
+
+	//mapping bank capabilities:
+	//print all account - in this state nobody can write to bank, anybody can keep reading
+	//lower_random_balance - in this state nobody can write or read to bank
+
+	ReadWriteLock bank_lock;
+
 //    std::map<std::int, std::vector<mutex_something> > locks; // first vector index will be reading, second for writing - we can also have the mutexes inside each account
 //    mutex_something bank_lock // for lower_balance and print accounts
 
