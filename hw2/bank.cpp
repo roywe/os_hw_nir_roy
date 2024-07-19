@@ -6,6 +6,8 @@
 #include "atm_machine.h"
 using namespace std;
 std::string log_file="log.txt";
+pthread_mutex_t log_mutex;
+#define DEBUG 0
 
 Bank::Bank(){
 	this->bank_lock = ReadWriteLock();
@@ -15,6 +17,7 @@ Bank::~Bank(){
 
 }
 
+//TODO: locks of the lower balance and print are not good for the log for example - need to check for atm
 void Bank::lower_random_balance(){
     //TODO: lock all the bank
 	this->bank_lock.enter_write();
@@ -24,7 +27,7 @@ void Bank::lower_random_balance(){
     printf("per: %f was chosen",randomPer);
     for (auto& pair : this->accounts) {
         int commission = pair.second.withdrawn_by_per(randomPer);
-        log << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
+        cout << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
     }
 
 	this->bank_lock.leave_write();
@@ -66,15 +69,32 @@ void* take_comm(void* bank) {
     pthread_exit(NULL);
 }
 
+void Bank::read_lock(){
+	if (DEBUG == 1) cout << "read lock bank" << endl;
+	else this->bank_lock.enter_read();
+}
+void Bank::read_unlock(){
+	if (DEBUG == 1) cout << "read unlock bank" << endl;
+	else this->bank_lock.leave_read();
+}
+void Bank::write_lock(){
+	if (DEBUG == 1) cout << "write lock bank" << endl;
+	else this->bank_lock.enter_write();
+}
+void Bank::write_unlock(){
+	if (DEBUG == 1) cout << "write unlock bank" << endl;
+	else this->bank_lock.leave_write();
+}
+
 
 int main (int argc, char *argv[]) {
 	//checking arguments
+
 	if ( argc == 1) {
 		cerr << "Bank error: illegal arguments" << endl ;
         exit(1);
 	}
 
-    Bank bank = Bank();
 
     bool file_corrupted = false;
     for (int i=1;i<argc;i++){
@@ -95,12 +115,15 @@ int main (int argc, char *argv[]) {
 		std::cerr << "Error opening file: " << log_file << std::endl;
 		return 1;
 	}
+	log.close();
+
+	Bank bank = Bank();
 	pthread_t *atm_threads = new pthread_t[argc -1];
 	pthread_t comission_threads;
 	pthread_t print_thread;
 	vector <ATM> atm_arr;
 	for (int i = 0; i<argc -1; ++i){
-		ATM atm =ATM(i,bank,argv[i+1]);
+		ATM atm =ATM(i,&bank,argv[i+1]);
 		atm_arr.push_back(atm);
 //		cout << "print here1" << endl;
 	}
@@ -135,25 +158,8 @@ int main (int argc, char *argv[]) {
 //    std::string atm_command_file = argv[1];
 //    ATM atm0 = ATM(0, bank, atm_command_file);
 //    atm0.run();
-    log.close();
+//    log.close();
 	delete[] atm_threads;
 	return 0;
 
-}
-
-void Bank::read_lock(){
-	cout << "read lock bank" << endl;
-	this->bank_lock.enter_read();
-}
-void Bank::read_unlock(){
-	cout << "read unlock bank" << endl;
-	this->bank_lock.leave_read();
-}
-void Bank::write_lock(){
-	cout << "write lock bank" << endl;
-	this->bank_lock.enter_write();
-}
-void Bank::write_unlock(){
-	cout << "write unlock bank" << endl;
-	this->bank_lock.leave_write();
 }
