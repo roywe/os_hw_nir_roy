@@ -4,6 +4,7 @@
 
 #include "account.h"
 using namespace std;
+#define DEBUG 0
 
 Account::Account(){
 
@@ -64,20 +65,20 @@ void Account::print_account() const{
 }
 
 void Account::read_lock(){
-    cout << "read lock account: " << this->account_id << endl;
-    this->rw_account.enter_read();
+    if (DEBUG == 1) cout << "read lock account: " << this->account_id << endl;
+    else this->rw_account.enter_read();
 }
 void Account::read_unlock(){
-    cout << "read unlock account: " << this->account_id << endl;
-    this->rw_account.leave_read();
+	if (DEBUG == 1) cout << "read unlock account: " << this->account_id << endl;
+    else this->rw_account.leave_read();
 }
 void Account::write_lock(){
-    cout << "write lock account: " << this->account_id << endl;
-    this->rw_account.enter_write();
+	if (DEBUG == 1) cout << "write lock account: " << this->account_id << endl;
+    else this->rw_account.enter_write();
 }
 void Account::write_unlock(){
-    cout << "write unlock account: " << this->account_id << endl;
-    this->rw_account.leave_write();
+	if (DEBUG == 1) cout << "write unlock account: " << this->account_id << endl;
+    else this->rw_account.leave_write();
 }
 
 

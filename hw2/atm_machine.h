@@ -11,7 +11,11 @@
 #include <iostream>
 #include <vector>
 #define MAX_ARG 5
+#include <pthread.h>
+
 using namespace std;
+extern pthread_mutex_t log_mutex;
+
 std::vector<std::string> splitString(const std::string& str, char delimiter);
 
 extern std::string log_file;
@@ -28,6 +32,7 @@ public :
     void check_balance (int acc_num, int password);
     void close_account (int acc_num, int password);
     void transfer (int source_acc, int password,int dest_acc, int amount );
+	void write_msg_to_log(string msg, bool is_error);
     Bank bank;
     int atm_id;
     std::vector<std::string> commands;
