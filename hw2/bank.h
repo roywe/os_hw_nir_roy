@@ -42,7 +42,6 @@ public:
 	void write_unlock();
     void print_all_accounts(); // it happened each 0.5 s  (locking all accounts) - we will need thread for this
     std::map<int, Account> accounts;
-
 	//mapping bank capabilities:
 	//print all account - in this state nobody can write to bank, anybody can keep reading
 	//lower_random_balance - in this state nobody can write or read to bank

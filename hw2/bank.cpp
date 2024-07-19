@@ -17,6 +17,7 @@ Bank::~Bank(){
 
 }
 
+//TODO: locks of the lower balance and print are not good for the log for example - need to check for atm
 void Bank::lower_random_balance(){
     //TODO: lock all the bank
 	this->bank_lock.enter_write();
@@ -26,7 +27,7 @@ void Bank::lower_random_balance(){
     printf("per: %f was chosen",randomPer);
     for (auto& pair : this->accounts) {
         int commission = pair.second.withdrawn_by_per(randomPer);
-        log << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
+        cout << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
     }
 
 	this->bank_lock.leave_write();
@@ -85,13 +86,6 @@ void Bank::write_unlock(){
 	else this->bank_lock.leave_write();
 }
 
-typedef struct ThreadArgs {
-	bank_t *p_bank;
-	ifstream *files;
-	int atm_id;
-
-	// Add more arguments as needed
-}thread_args;
 
 int main (int argc, char *argv[]) {
 	//checking arguments
@@ -101,7 +95,6 @@ int main (int argc, char *argv[]) {
         exit(1);
 	}
 
-    Bank bank = Bank();
 
     bool file_corrupted = false;
     for (int i=1;i<argc;i++){
@@ -124,12 +117,13 @@ int main (int argc, char *argv[]) {
 	}
 	log.close();
 
+	Bank bank = Bank();
 	pthread_t *atm_threads = new pthread_t[argc -1];
 	pthread_t comission_threads;
 	pthread_t print_thread;
 	vector <ATM> atm_arr;
 	for (int i = 0; i<argc -1; ++i){
-		ATM atm =ATM(i,bank,argv[i+1]);
+		ATM atm =ATM(i,&bank,argv[i+1]);
 		atm_arr.push_back(atm);
 //		cout << "print here1" << endl;
 	}

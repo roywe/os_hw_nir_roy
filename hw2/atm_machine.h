@@ -24,7 +24,7 @@ extern std::ofstream log;
 class ATM {
 
 public :
-    ATM(int atm_id, Bank bank, std::string file_name);
+    ATM(int atm_id, Bank * bank, std::string file_name);
     int run();// if atm failed return value is 0
     void open_account(int acc_num, int password, int balance);
     void deposit (int acc_num, int password, int amount );
@@ -33,7 +33,8 @@ public :
     void close_account (int acc_num, int password);
     void transfer (int source_acc, int password,int dest_acc, int amount );
 	void write_msg_to_log(string msg, bool is_error);
-    Bank bank;
+//    Bank bank;
+	Bank * bank;
     int atm_id;
     std::vector<std::string> commands;
 

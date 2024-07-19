@@ -8,7 +8,7 @@ using namespace std;
 std::ofstream log;
 extern pthread_mutex_t log_mutex;
 
-ATM::ATM(int atm_id, Bank bank, std::string file_name){
+ATM::ATM(int atm_id, Bank * bank, std::string file_name){
     this->atm_id = atm_id;
     // we want to seperate between the part of initializing atm and running it therefore I think commands is fine idea
     // otherwise we should think how to return if the file is corrupted before running
@@ -50,13 +50,13 @@ int ATM::run(){
 			open_account(account_id, password, atoi(args[3].c_str()));
 		} else {
 			//maybe the wise thing will be to open also delete account lock - in which only delete check if one is checking it right now
-			if (bank.accounts.find(account_id) == bank.accounts.end()) {
+			if (bank->accounts.find(account_id) == bank->accounts.end()) {
 				log << "Error" << this->atm_id << ": Your transaction failed – account id " << account_id
 					<< " does not exist" << endl;
 //				return 0;
 			}
 
-			else if (bank.accounts[account_id].get_password() != password) {
+			else if (bank->accounts[account_id].get_password() != password) {
 				log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << account_id
 					<< " is incorrect" << endl;
 //				return 0;
@@ -83,9 +83,9 @@ int ATM::run(){
 		}
 
 	}
-    this->bank.print_all_accounts();
-    this->bank.lower_random_balance();
-    this->bank.print_all_accounts();
+    this->bank->print_all_accounts();
+    this->bank->lower_random_balance();
+    this->bank->print_all_accounts();
 
     return 1;
 
@@ -117,60 +117,63 @@ std::vector<std::string> splitString(const std::string& str, char delimiter) {
 void ATM::open_account(int acc_num, int password, int balance){
 	// open account on bank - doesn't interupt anything
 	string msg;
-	bank.write_lock();
-	cout << "get into the lock"<< endl;
-	if(bank.accounts.find(acc_num) != bank.accounts.end()){
+	bank->write_lock();
+	if(bank->accounts.find(acc_num) != bank->accounts.end()){
 
 		msg = "Your transaction failed – account with the same id exists";
 		write_msg_to_log(msg, true);
-		bank.write_unlock();
+		bank->write_unlock();
 		return;
 	}
-	bank.accounts[acc_num] = Account(acc_num,password,balance);
-	bank.write_unlock();
+	bank->accounts[acc_num] = Account(acc_num,password,balance);
+	bank->write_unlock();
 	msg = "New account id is " + to_string(acc_num) + " with password " + to_string(password) + " and initial balance " + to_string(balance);
 	write_msg_to_log(msg, false);
 
 }
 
 //TODO - locking the account id - lock account read+write mutex + bank_lock
+//TODO - seems fine but had problems - when putting 2 machines with same pass the logs become not good
+// it might be beacuse of the bank commissions
 void ATM::deposit (int acc_num, int password, int amount ){
 	//lock write for account
 	//	when writing to account bank cant read or write - nobody can write to account
-	bank.write_lock();
-	bank.accounts[acc_num].write_lock();
+	bank->write_lock();
+	bank->accounts[acc_num].write_lock();
 
-	bank.accounts[acc_num].deposit(amount);
-	string msg = "Account " + to_string(acc_num) + " new balance is " + to_string(bank.accounts[acc_num].get_current_balance()) + " after " + to_string(amount) + "$ was deposited";
+	bank->accounts[acc_num].deposit(amount);
+	string msg = "Account " + to_string(acc_num) + " new balance is " + to_string(bank->accounts[acc_num].get_current_balance()) + " after " + to_string(amount) + "$ was deposited";
 	write_msg_to_log(msg, false);
 
-	bank.accounts[acc_num].write_unlock();
-	bank.write_unlock();
+	bank->accounts[acc_num].write_unlock();
+	bank->write_unlock();
+
 	//lock write for account
 }
 
 //TODO - locking the account id - lock account read+write mutex + bank_lock
+// fix locking - has probelm for 2 threads
 void ATM::withdraw (int acc_num, int password, int amount) {
 	//lock write for account - withdraw - nobody can write to this account etc
 
 	string msg;
-	bank.write_lock();
-	bank.accounts[acc_num].write_lock();
+	bank->write_lock();
+	bank->accounts[acc_num].write_lock();
 
-    if(bank.accounts[acc_num].get_current_balance() < amount){
+    if(bank->accounts[acc_num].get_current_balance() < amount){
 		msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
 		write_msg_to_log(msg, true);
-		bank.accounts[acc_num].write_unlock();
-		bank.write_lock();
+		bank->accounts[acc_num].write_unlock();
+		bank->write_lock();
         return;
     }
 	else{
-		bank.accounts[acc_num].withdrawn(amount);
-		msg = "Account " + to_string(acc_num) + " new balance is " + to_string(bank.accounts[acc_num].get_current_balance()) + " after " + to_string(amount) + "$ was withdrawn";
+		bank->accounts[acc_num].withdrawn(amount);
+		msg = "Account " + to_string(acc_num) + " new balance is " + to_string(bank->accounts[acc_num].get_current_balance()) + " after " + to_string(amount) + "$ was withdrawn";
 		write_msg_to_log(msg, false);
 
-		bank.accounts[acc_num].write_unlock();
-		bank.write_unlock();
+		bank->accounts[acc_num].write_unlock();
+		bank->write_unlock();
 		return;
 	}
 
@@ -182,17 +185,18 @@ void ATM::withdraw (int acc_num, int password, int amount) {
 
 
 //TODO: need to lock account - lock account write mutex..
+// seems fine and I didnt see any lock need to check further
 void ATM::check_balance (int acc_num, int password){
 
-	bank.read_lock();
-	bank.accounts[acc_num].read_lock();
+	bank->read_lock();
+	bank->accounts[acc_num].read_lock();
 
-	string msg = "Account " + to_string(acc_num) + " balance is " + to_string(bank.accounts[acc_num].get_current_balance());
+	string msg = "Account " + to_string(acc_num) + " balance is " + to_string(bank->accounts[acc_num].get_current_balance());
 
 	write_msg_to_log(msg, false);
 
-	bank.accounts[acc_num].read_unlock();
-	bank.read_unlock();
+	bank->accounts[acc_num].read_unlock();
+	bank->read_unlock();
 
 }
 
@@ -201,48 +205,49 @@ void ATM::check_balance (int acc_num, int password){
 //need to think what to lock if we delete and someone already got user...
 void ATM::close_account (int acc_num, int password){
 	//lock bank, lock user somehow
-	bank.write_lock();
+	bank->write_lock();
 //	bank.write_lock();
-	int temp_balance =  bank.accounts[acc_num].get_current_balance();
-	bank.accounts.erase(acc_num);
+	int temp_balance =  bank->accounts[acc_num].get_current_balance();
+	bank->accounts.erase(acc_num);
 	string msg = "Account " + to_string(acc_num) + " is now closed. Balance was " + to_string(temp_balance);
 	write_msg_to_log(msg, false);
 
-	bank.write_unlock();
+	bank->write_unlock();
 }
 
 //TODO:   implement lock_account_by_order() //is it before we get them or after... because they can be deleted - maybe adding anothe lock will help
 //getting 2 accounts and locking by account id, another option - get mapping and lock..
 //we need the find to be somehow atomic - maybe external lock will help for this case
 //TODO: need to lock account a from reading+writing+bank_lock and lock the other from reading - sort the locks by ids size (to avoid deadlock)
+// didnt have a lock or something but maybe
 void ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
-	//
+
 	string msg;
-	if(bank.accounts.find(dest_acc) == bank.accounts.end()){
+	if(bank->accounts.find(dest_acc) == bank->accounts.end()){
 		msg = "Your transaction failed – account id " + to_string(dest_acc) + " does not exist";
 		write_msg_to_log(msg, true);
 		return;
 	}
-	if(bank.accounts[source_acc].get_current_balance() < amount){
+	if(bank->accounts[source_acc].get_current_balance() < amount){
 		msg = "Your transaction failed – account id " + to_string(source_acc) + " balance is lower than " + to_string(amount);
 		write_msg_to_log(msg, true);
 		return;
 	}
 
-	bank.write_lock();
+	bank->write_lock();
 
-	bank.accounts[source_acc].lock_ww_same_order(bank.accounts[dest_acc]);
+	bank->accounts[source_acc].lock_ww_same_order(bank->accounts[dest_acc]);
 
-	bank.accounts[source_acc].withdrawn(amount);
+	bank->accounts[source_acc].withdrawn(amount);
     //TODO: need to check balance somehow
-	bank.accounts[dest_acc].deposit(amount);
-	msg = "Transfer "+ to_string(amount) +" from account "+ to_string(source_acc) +" to account "+to_string(source_acc) + " new account balance is "+ to_string(bank.accounts[source_acc].get_current_balance()) + " new target account balance is "+to_string(bank.accounts[dest_acc].get_current_balance());
+	bank->accounts[dest_acc].deposit(amount);
+	msg = "Transfer "+ to_string(amount) +" from account "+ to_string(source_acc) +" to account "+to_string(dest_acc) + " new account balance is "+ to_string(bank->accounts[source_acc].get_current_balance()) + " new target account balance is "+to_string(bank->accounts[dest_acc].get_current_balance());
 
 	write_msg_to_log(msg, false);
-	bank.accounts[source_acc].read_unlock();
+	bank->accounts[source_acc].read_unlock();
 
-	bank.accounts[source_acc].unlock_ww_same_order(bank.accounts[dest_acc]);
-	bank.write_unlock();
+	bank->accounts[source_acc].unlock_ww_same_order(bank->accounts[dest_acc]);
+	bank->write_unlock();
 }
 
 
