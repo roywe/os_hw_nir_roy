@@ -4,7 +4,7 @@
 
 #include "atm_machine.h"
 #include <string>
-#define DEBUG 0
+#define DEBUG 1
 
 using namespace std;
 std::ofstream log;

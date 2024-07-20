@@ -12,6 +12,7 @@
 #include <ctime>
 #include <pthread.h>
 #include <vector>
+#include <unistd.h>
 
 extern std::ofstream log;
 //bank - can be an object inside atm machine or just a vector of accounts

@@ -7,7 +7,7 @@
 using namespace std;
 std::string log_file="log.txt";
 pthread_mutex_t log_mutex;
-#define DEBUG 0
+#define DEBUG 1
 
 Bank::Bank(){
 	this->bank_lock = ReadWriteLock();
@@ -20,32 +20,50 @@ Bank::~Bank(){
 //TODO: locks of the lower balance and print are not good for the log for example - need to check for atm
 void Bank::lower_random_balance(){
     //TODO: lock all the bank
-	this->write_lock();
+	this->read_lock();
 //	this->bank_lock.enter_write();
 
     std::srand(std::time(nullptr));
     float randomPer = std::rand() % 5 + 1;
-    printf("per: %f was chosen",randomPer);
+//    printf("per: %f was chosen",randomPer);
+    //FIXME maybe need to check map is sorted
+    for (auto& pair : this->accounts){
+    	pair.second.write_lock();
+    }
     for (auto& pair : this->accounts) {
         int commission = pair.second.withdrawn_by_per(randomPer);
         cout << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
     }
-	this->write_unlock();
+    //FIXME maybe need to check map is sorted
+    for (auto& pair : this->accounts){
+    	pair.second.write_unlock();
+    }
+
+	this->read_unlock();
 //	this->bank_lock.leave_write();
     //TODO: Unlock all the bank
-
+	sleep(3); // sleep for 3 sec
 }
 // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
 
 void Bank::print_all_accounts(){
 	this->read_lock();
+    //FIXME maybe need to check map is sorted
+    for (auto& pair : this->accounts){
+    	pair.second.read_lock();
+    }
 //	this->bank_lock.enter_read();
+    cout << "Current Bank Status " << endl;
     for (const auto& pair : this->accounts) {
         pair.second.print_account();
     }
+    //FIXME maybe need to check map is sorted
+    for (auto& pair : this->accounts){
+    	pair.second.read_unlock();
+    }
 	this->read_unlock();
 //	this->bank_lock.leave_read();
-
+	sleep(0.5); // sleep for 0.5 sec
 } // it happened each 0.5 s  (locking all accounts) - we will need thread for this
 
 
@@ -153,6 +171,8 @@ int main (int argc, char *argv[]) {
 //		cout << "print here3" << endl;
 		pthread_join(atm_threads[i], NULL);
 	}
+	pthread_join(comission_threads, NULL);
+	pthread_join(print_thread, NULL);
 
 //	cout << "print here" << endl;
 //	log<< "test" << endl;

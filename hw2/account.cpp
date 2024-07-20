@@ -4,7 +4,7 @@
 
 #include "account.h"
 using namespace std;
-#define DEBUG 0
+#define DEBUG 1
 
 Account::Account(){
 
@@ -61,24 +61,25 @@ int Account::withdrawn_by_per(float randomPer){
 }
 
 void Account::print_account() const{
-    cout << "Account "<< this->account_id << ": Balance - "<< this->current_balance << " $, Account Password - "<< this->password << endl;
+    std::cout << "Account " << this->account_id << ": Balance - " << this->current_balance << " $, Account Password - "
+              << ((this->password < 1000) ? "0" + std::to_string(this->password) : std::to_string(this->password)) << std::endl;
 }
 
 void Account::read_lock(){
     if (DEBUG == 1) cout << "read lock account: " << this->account_id << endl;
-    else this->rw_account.enter_read();
+    this->rw_account.enter_read();
 }
 void Account::read_unlock(){
 	if (DEBUG == 1) cout << "read unlock account: " << this->account_id << endl;
-    else this->rw_account.leave_read();
+    this->rw_account.leave_read();
 }
 void Account::write_lock(){
 	if (DEBUG == 1) cout << "write lock account: " << this->account_id << endl;
-    else this->rw_account.enter_write();
+    this->rw_account.enter_write();
 }
 void Account::write_unlock(){
 	if (DEBUG == 1) cout << "write unlock account: " << this->account_id << endl;
-    else this->rw_account.leave_write();
+    this->rw_account.leave_write();
 }
 
 
