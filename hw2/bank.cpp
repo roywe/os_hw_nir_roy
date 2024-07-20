@@ -20,7 +20,8 @@ Bank::~Bank(){
 //TODO: locks of the lower balance and print are not good for the log for example - need to check for atm
 void Bank::lower_random_balance(){
     //TODO: lock all the bank
-	this->bank_lock.enter_write();
+	this->write_lock();
+//	this->bank_lock.enter_write();
 
     std::srand(std::time(nullptr));
     float randomPer = std::rand() % 5 + 1;
@@ -29,20 +30,21 @@ void Bank::lower_random_balance(){
         int commission = pair.second.withdrawn_by_per(randomPer);
         cout << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
     }
-
-	this->bank_lock.leave_write();
+	this->write_unlock();
+//	this->bank_lock.leave_write();
     //TODO: Unlock all the bank
 
 }
 // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
 
 void Bank::print_all_accounts(){
-
-	this->bank_lock.enter_read();
+	this->read_lock();
+//	this->bank_lock.enter_read();
     for (const auto& pair : this->accounts) {
         pair.second.print_account();
     }
-	this->bank_lock.leave_read();
+	this->read_unlock();
+//	this->bank_lock.leave_read();
 
 } // it happened each 0.5 s  (locking all accounts) - we will need thread for this
 

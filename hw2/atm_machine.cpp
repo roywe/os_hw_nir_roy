@@ -4,6 +4,8 @@
 
 #include "atm_machine.h"
 #include <string>
+#define DEBUG 0
+
 using namespace std;
 std::ofstream log;
 extern pthread_mutex_t log_mutex;
@@ -23,8 +25,34 @@ ATM::ATM(int atm_id, Bank * bank, std::string file_name){
 }
 
 
+bool ATM::write_log_if_no_account(int acc){
+	/**
+     * @brief - check if no account and write to log
+     * @param acc - account id to check
+     * @return false if no account, true if account exists
+    */
+	if (bank->accounts.find(acc) == bank->accounts.end()) {
+		string msg = "Your transaction failed – account id " + to_string(acc) + " does not exist";
+		write_msg_to_log(msg, true);
+		return false;
+	}
+	return true;
+}
 
-
+bool ATM::write_log_if_password_not_match(int acc, int password){
+	/**
+     * @brief - check if no password doesnt match and write to log
+     * @param acc - account id to check
+     * @param password - password to check
+     * @return false if no account, true if account exists
+    */
+	if (bank->accounts[acc].get_password() != password) {
+		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
+		write_msg_to_log(msg, true);
+		return false;
+	}
+	return true;
+}
 
 int ATM::run(){
 //    size_t atm_command_index = 0;
@@ -50,17 +78,8 @@ int ATM::run(){
 			open_account(account_id, password, atoi(args[3].c_str()));
 		} else {
 			//maybe the wise thing will be to open also delete account lock - in which only delete check if one is checking it right now
-			if (bank->accounts.find(account_id) == bank->accounts.end()) {
-				log << "Error" << this->atm_id << ": Your transaction failed – account id " << account_id
-					<< " does not exist" << endl;
-//				return 0;
-			}
 
-			else if (bank->accounts[account_id].get_password() != password) {
-				log << "Error" << this->atm_id << ": Your transaction failed – password for account id " << account_id
-					<< " is incorrect" << endl;
-//				return 0;
-			} else if (!strcmp(cmd, "D")) {
+			if (!strcmp(cmd, "D")) {
 				int amount = atoi(args[3].c_str());
 				deposit(account_id, password, amount);
 			} else if (!strcmp(cmd, "W")) {
@@ -122,97 +141,140 @@ void ATM::open_account(int acc_num, int password, int balance){
 
 		msg = "Your transaction failed – account with the same id exists";
 		write_msg_to_log(msg, true);
+//		if (DEBUG == 0) sleep_ms(1000*1);
 		bank->write_unlock();
 		return;
 	}
 	bank->accounts[acc_num] = Account(acc_num,password,balance);
-	bank->write_unlock();
+//	sleep_ms(1000*1);
 	msg = "New account id is " + to_string(acc_num) + " with password " + to_string(password) + " and initial balance " + to_string(balance);
 	write_msg_to_log(msg, false);
+	bank->write_unlock();
+
 
 }
 
 //TODO - locking the account id - lock account read+write mutex + bank_lock
 //TODO - seems fine but had problems - when putting 2 machines with same pass the logs become not good
 // it might be beacuse of the bank commissions
-void ATM::deposit (int acc_num, int password, int amount ){
+int ATM::deposit (int acc_num, int password, int amount ){
 	//lock write for account
 	//	when writing to account bank cant read or write - nobody can write to account
-	bank->write_lock();
-	bank->accounts[acc_num].write_lock();
+	bank->read_lock();
+	bool is_account = write_log_if_no_account(acc_num);
+	bool is_password = write_log_if_password_not_match(acc_num, password);
+	if ((not is_account) || (not is_password)){
+//		if (DEBUG == 0) sleep_ms(1000*1);
+		bank->read_unlock();
+		return FAIL;
+	}
+	else{
+		bank->accounts[acc_num].write_lock();
 
-	bank->accounts[acc_num].deposit(amount);
-	string msg = "Account " + to_string(acc_num) + " new balance is " + to_string(bank->accounts[acc_num].get_current_balance()) + " after " + to_string(amount) + "$ was deposited";
-	write_msg_to_log(msg, false);
+		int current_balance = bank->accounts[acc_num].deposit(amount);
 
-	bank->accounts[acc_num].write_unlock();
-	bank->write_unlock();
+		string msg = "Account " + to_string(acc_num) + " new balance is " + to_string(current_balance) + " after " + to_string(amount) + "$ was deposited";
+		write_msg_to_log(msg, false);
+//		if (DEBUG == 0) sleep_ms(1000*1);
+		//TODO: probably we can move some of the locks below before the logs
+		bank->accounts[acc_num].write_unlock();
+		bank->read_unlock();
+		return SUCCESS;
+	}
 
-	//lock write for account
 }
 
 //TODO - locking the account id - lock account read+write mutex + bank_lock
 // fix locking - has probelm for 2 threads
-void ATM::withdraw (int acc_num, int password, int amount) {
+int ATM::withdraw (int acc_num, int password, int amount) {
 	//lock write for account - withdraw - nobody can write to this account etc
 
 	string msg;
-	bank->write_lock();
-	bank->accounts[acc_num].write_lock();
-
-    if(bank->accounts[acc_num].get_current_balance() < amount){
-		msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
-		write_msg_to_log(msg, true);
-		bank->accounts[acc_num].write_unlock();
-		bank->write_lock();
-        return;
-    }
-	else{
-		bank->accounts[acc_num].withdrawn(amount);
-		msg = "Account " + to_string(acc_num) + " new balance is " + to_string(bank->accounts[acc_num].get_current_balance()) + " after " + to_string(amount) + "$ was withdrawn";
-		write_msg_to_log(msg, false);
-
-		bank->accounts[acc_num].write_unlock();
-		bank->write_unlock();
-		return;
+	bank->read_lock();
+	bool is_account = write_log_if_no_account(acc_num);
+	bool is_password = write_log_if_password_not_match(acc_num, password);
+	if ((not is_account) || (not is_password) || (amount<0)) {
+//		if (DEBUG == 0) sleep_ms(1000*1);
+		bank->read_unlock();
+		return FAIL;
 	}
 
+	else{
+		bank->accounts[acc_num].write_lock();
+
+		int current_balance = bank->accounts[acc_num].withdrawn(amount);
+		if(current_balance == -1){
+			msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
+			write_msg_to_log(msg, true);
+//			if (DEBUG == 0) sleep_ms(1000*1);
+			bank->accounts[acc_num].write_unlock();
+			bank->read_lock();
+			return FAIL;
+		}
+		else{
+			msg = "Account " + to_string(acc_num) + " new balance is " + to_string(current_balance) + " after " + to_string(amount) + "$ was withdrawn";
+			write_msg_to_log(msg, false);
+//			if (DEBUG == 0) sleep_ms(1000*1);
+			bank->accounts[acc_num].write_unlock();
+			bank->read_unlock();
+			return SUCCESS;
+		}
+	}
 
 
 }
 
-
-
-
 //TODO: need to lock account - lock account write mutex..
 // seems fine and I didnt see any lock need to check further
-void ATM::check_balance (int acc_num, int password){
+int ATM::check_balance (int acc_num, int password){
 
 	bank->read_lock();
-	bank->accounts[acc_num].read_lock();
+	bool is_account = write_log_if_no_account(acc_num);
+	bool is_password = write_log_if_password_not_match(acc_num, password);
+	if ((not is_account) || (not is_password)) {
+//		if (DEBUG == 0) sleep_ms(1000*1);
+		bank->read_unlock();
+		return FAIL;
+	}
+	else{
+		bank->accounts[acc_num].read_lock();
 
-	string msg = "Account " + to_string(acc_num) + " balance is " + to_string(bank->accounts[acc_num].get_current_balance());
+		int current_balance = bank->accounts[acc_num].get_current_balance();
+		string msg = "Account " + to_string(acc_num) + " balance is " + to_string(current_balance);
+		write_msg_to_log(msg, false);
+//		if (DEBUG == 0) sleep_ms(1000*1);
+		bank->accounts[acc_num].read_unlock();
+		bank->read_unlock();
+		return SUCCESS;
+	}
 
-	write_msg_to_log(msg, false);
-
-	bank->accounts[acc_num].read_unlock();
-	bank->read_unlock();
 
 }
 
 //TODO: need to lock account because if moving amount the it is not good - lock account write+read mutex + bank_lock
 //TODO: check that actually erase and return answer if not...
 //need to think what to lock if we delete and someone already got user...
-void ATM::close_account (int acc_num, int password){
+int ATM::close_account (int acc_num, int password){
 	//lock bank, lock user somehow
 	bank->write_lock();
-//	bank.write_lock();
-	int temp_balance =  bank->accounts[acc_num].get_current_balance();
-	bank->accounts.erase(acc_num);
+
+	bool is_account = write_log_if_no_account(acc_num);
+	bool is_password = write_log_if_password_not_match(acc_num, password);
+	if ((not is_account) || (not is_password)) {
+//		if (DEBUG == 0) sleep_ms(1000*1);
+		bank->read_unlock();
+		return FAIL;
+	}
+
+	auto it = bank->accounts.find(acc_num);
+
+	int temp_balance =  it->second.get_current_balance();
+	bank->accounts.erase(it);
 	string msg = "Account " + to_string(acc_num) + " is now closed. Balance was " + to_string(temp_balance);
 	write_msg_to_log(msg, false);
-
+//	if (DEBUG == 0) sleep_ms(1000*1);
 	bank->write_unlock();
+	return SUCCESS;
 }
 
 //TODO:   implement lock_account_by_order() //is it before we get them or after... because they can be deleted - maybe adding anothe lock will help
