@@ -34,7 +34,7 @@ public :
     int withdraw (int acc_num, int password, int amount );
     int check_balance (int acc_num, int password);
     int close_account (int acc_num, int password);
-    void transfer (int source_acc, int password,int dest_acc, int amount );
+    int transfer (int source_acc, int password,int dest_acc, int amount );
 	void write_msg_to_log(string msg, bool is_error);
 	bool write_log_if_no_account(int acc);
 	bool write_log_if_password_not_match(int acc, int password);
