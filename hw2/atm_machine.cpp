@@ -47,7 +47,10 @@ bool ATM::write_log_if_password_not_match(int acc, int password){
      * @return false if no account, true if account exists
     */
 	if (bank->accounts[acc].get_password() != password) {
-		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
+		string msg = "password is " + to_string(password);
+//		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
+		write_msg_to_log(msg, true);
+		msg = "acc password is : " + to_string(bank->accounts[acc].get_password());
 		write_msg_to_log(msg, true);
 		return false;
 	}
@@ -59,6 +62,7 @@ int ATM::run(){
 
 
     for (size_t i = 0; i < this->commands.size(); ++i) {
+    	usleep(100 * 1000);
 //        std::cout <<"Num :" << i << " is: "<<commands[i] << endl;
 		std::vector <std::string> tempStr = splitString(commands[i], ' ');
 		std::string current_command;
@@ -138,15 +142,16 @@ void ATM::open_account(int acc_num, int password, int balance){
 
 		msg = "Your transaction failed – account with the same id exists";
 		write_msg_to_log(msg, true);
-		if (DEBUG == 0) usleep(1000*1);
+
 		bank->write_unlock();
+		if (DEBUG == 0) sleep(1);
 		return;
 	}
 	bank->accounts[acc_num] = Account(acc_num,password,balance);
-	if (DEBUG == 0) usleep(1000*1);
 	msg = "New account id is " + to_string(acc_num) + " with password " + to_string(password) + " and initial balance " + to_string(balance);
 	write_msg_to_log(msg, false);
 	bank->write_unlock();
+	if (DEBUG == 0) sleep(1);
 
 
 }
@@ -161,14 +166,14 @@ int ATM::deposit (int acc_num, int password, int amount ){
 	bool is_account = write_log_if_no_account(acc_num);
 
 	if (not is_account){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 	bool is_password = write_log_if_password_not_match(acc_num, password);
 	if (not is_password){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
@@ -179,10 +184,10 @@ int ATM::deposit (int acc_num, int password, int amount ){
 
 		string msg = "Account " + to_string(acc_num) + " new balance is " + to_string(current_balance) + " after " + to_string(amount) + "$ was deposited";
 		write_msg_to_log(msg, false);
-		if (DEBUG == 0) usleep(1000*1);
 		//TODO: probably we can move some of the locks below before the logs
 		bank->accounts[acc_num].write_unlock();
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return SUCCESS;
 	}
 
@@ -200,15 +205,15 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 	bool is_account = write_log_if_no_account(acc_num);
 
 	if (not is_account) {
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
 	bool is_password = write_log_if_password_not_match(acc_num, password);
 	if(not is_password){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
@@ -219,17 +224,17 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 		if(current_balance == -1){
 			msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
 			write_msg_to_log(msg, true);
-			if (DEBUG == 0) usleep(1000*1);
 			bank->accounts[acc_num].write_unlock();
 			bank->read_lock();
+			if (DEBUG == 0) sleep(1);
 			return FAIL;
 		}
 		else{
 			msg = "Account " + to_string(acc_num) + " new balance is " + to_string(current_balance) + " after " + to_string(amount) + "$ was withdrawn";
 			write_msg_to_log(msg, false);
-			if (DEBUG == 0) usleep(1000*1);
 			bank->accounts[acc_num].write_unlock();
 			bank->read_unlock();
+			if (DEBUG == 0) sleep(1);
 			return SUCCESS;
 		}
 	}
@@ -245,15 +250,15 @@ int ATM::check_balance (int acc_num, int password){
 	bool is_account = write_log_if_no_account(acc_num);
 
 	if (not is_account) {
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
 	bool is_password = write_log_if_password_not_match(acc_num, password);
 	if (not is_password){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
@@ -263,9 +268,9 @@ int ATM::check_balance (int acc_num, int password){
 		int current_balance = bank->accounts[acc_num].get_current_balance();
 		string msg = "Account " + to_string(acc_num) + " balance is " + to_string(current_balance);
 		write_msg_to_log(msg, false);
-		if (DEBUG == 0) usleep(1000*1);
 		bank->accounts[acc_num].read_unlock();
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return SUCCESS;
 	}
 
@@ -282,15 +287,15 @@ int ATM::close_account (int acc_num, int password){
 	bool is_account = write_log_if_no_account(acc_num);
 
 	if (not is_account) {
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
 	bool is_password = write_log_if_password_not_match(acc_num, password);
 	if(not is_password){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 	else{
@@ -300,8 +305,8 @@ int ATM::close_account (int acc_num, int password){
 		bank->accounts.erase(it);
 		string msg = "Account " + to_string(acc_num) + " is now closed. Balance was " + to_string(temp_balance);
 		write_msg_to_log(msg, false);
-		if (DEBUG == 0) usleep(1000*1);
 		bank->write_unlock();
+		if (DEBUG == 0) sleep(1);
 		return SUCCESS;
 	}
 
@@ -325,22 +330,22 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 	bool is_account = write_log_if_no_account(source_acc);
 	if (not is_account) {
 		//TODO: print just one of the errors by splitting if..
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
-
+	cout << " password is " << password << endl;
 	bool is_password = write_log_if_password_not_match(source_acc, password);
 	if(not is_password){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
 	bool is_account_b = write_log_if_no_account(dest_acc);
 	if(not is_account_b){
-		if (DEBUG == 0) usleep(1000*1);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
@@ -351,18 +356,18 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 	if (current_balance_a == -1 ){
 		msg = "Your transaction failed – account id " + to_string(source_acc) + " balance is lower than " + to_string(amount);
 		write_msg_to_log(msg, true);
-		if (DEBUG == 0) usleep(1000*1);
 		bank->accounts[source_acc].unlock_ww_same_order(bank->accounts[dest_acc]);
 		bank->read_unlock();
+		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
 	int current_balance_b = bank->accounts[dest_acc].deposit(amount);
 	msg = "Transfer "+ to_string(amount) +" from account "+ to_string(source_acc) +" to account "+to_string(dest_acc) + " new account balance is "+ to_string(current_balance_a) + " new target account balance is "+to_string(current_balance_b);
 	write_msg_to_log(msg, false);
-	if (DEBUG == 0) usleep(1000*1);
 	bank->accounts[source_acc].unlock_ww_same_order(bank->accounts[dest_acc]);
 	bank->read_unlock();
+	if (DEBUG == 0) sleep(1);
 	return SUCCESS;
 
 

@@ -4,7 +4,7 @@
 
 #include "account.h"
 using namespace std;
-#define DEBUG 1
+#define DEBUG 0
 
 Account::Account(){
 
@@ -61,6 +61,7 @@ int Account::withdrawn_by_per(float randomPer){
 }
 
 void Account::print_account() const{
+//	cout << " 123" <<endl;
     std::cout << "Account " << this->account_id << ": Balance - " << this->current_balance << " $, Account Password - "
               << ((this->password < 1000) ? "0" + std::to_string(this->password) : std::to_string(this->password)) << std::endl;
 }
