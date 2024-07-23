@@ -47,11 +47,11 @@ bool ATM::write_log_if_password_not_match(int acc, int password){
      * @return false if no account, true if account exists
     */
 	if (bank->accounts[acc].get_password() != password) {
-		string msg = "password is " + to_string(password);
-//		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
+//		string msg = "password is " + to_string(password);
+		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
 		write_msg_to_log(msg, true);
-		msg = "acc password is : " + to_string(bank->accounts[acc].get_password());
-		write_msg_to_log(msg, true);
+//		msg = "acc password is : " + to_string(bank->accounts[acc].get_password());
+//		write_msg_to_log(msg, true);
 		return false;
 	}
 	return true;
@@ -138,6 +138,7 @@ void ATM::open_account(int acc_num, int password, int balance){
 	// open account on bank - doesn't interupt anything
 	string msg;
 	bank->write_lock();
+//	cout << "im here " << endl;
 	if(bank->accounts.find(acc_num) != bank->accounts.end()){
 
 		msg = "Your transaction failed – account with the same id exists";
@@ -221,11 +222,12 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 		bank->accounts[acc_num].write_lock();
 
 		int current_balance = bank->accounts[acc_num].withdrawn(amount);
+//		cout << "balance print  : " << current_balance << endl;
 		if(current_balance == -1){
 			msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
 			write_msg_to_log(msg, true);
 			bank->accounts[acc_num].write_unlock();
-			bank->read_lock();
+			bank->read_unlock();
 			if (DEBUG == 0) sleep(1);
 			return FAIL;
 		}
@@ -287,14 +289,14 @@ int ATM::close_account (int acc_num, int password){
 	bool is_account = write_log_if_no_account(acc_num);
 
 	if (not is_account) {
-		bank->read_unlock();
+		bank->write_unlock();
 		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
 
 	bool is_password = write_log_if_password_not_match(acc_num, password);
 	if(not is_password){
-		bank->read_unlock();
+		bank->write_unlock();
 		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
@@ -334,7 +336,7 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
-	cout << " password is " << password << endl;
+//	cout << " password is " << password << endl;
 	bool is_password = write_log_if_password_not_match(source_acc, password);
 	if(not is_password){
 		bank->read_unlock();

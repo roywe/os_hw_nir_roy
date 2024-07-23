@@ -68,6 +68,7 @@ void Bank::print_all_accounts(){
 		this->read_unlock();
 	//	this->bank_lock.leave_read();
 		usleep(500 * 1000); // sleep for 0.5 sec
+//		sleep(6);
 	}
 } // it happened each 0.5 s  (locking all accounts) - we will need thread for this
 
@@ -96,19 +97,19 @@ void* take_comm(void* bank) {
 
 void Bank::read_lock(){
 	if (DEBUG == 1) cout << "read lock bank" << endl;
-	else this->bank_lock.enter_read();
+	this->bank_lock.enter_read();
 }
 void Bank::read_unlock(){
 	if (DEBUG == 1) cout << "read unlock bank" << endl;
-	else this->bank_lock.leave_read();
+	this->bank_lock.leave_read();
 }
 void Bank::write_lock(){
 	if (DEBUG == 1) cout << "write lock bank" << endl;
-	else this->bank_lock.enter_write();
+	this->bank_lock.enter_write();
 }
 void Bank::write_unlock(){
 	if (DEBUG == 1) cout << "write unlock bank" << endl;
-	else this->bank_lock.leave_write();
+	this->bank_lock.leave_write();
 }
 
 
