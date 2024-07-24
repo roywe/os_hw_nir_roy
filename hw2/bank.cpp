@@ -26,6 +26,9 @@ Bank::~Bank(){
 
 void Bank::write_msg_to_log(string msg)
 {
+	/**
+     * @brief - write msg for the bank
+    */
 	pthread_mutex_unlock(&log_mutex);
 	log.open(log_file, std::ios::out | std::ios::app);
 	if(log.is_open()){
@@ -37,6 +40,9 @@ void Bank::write_msg_to_log(string msg)
 
 //TODO: print as they want
 void Bank::lower_random_balance(){
+	/**
+     * @brief - take commission from all bank users
+    */
 	while(!endBank){
 		//TODO: lock all the bank
 		this->read_lock();
@@ -70,6 +76,9 @@ void Bank::lower_random_balance(){
 // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
 //TODO: print as they want
 void Bank::print_all_accounts(){
+	/**
+     * @brief - print bank accounts and the account of the bank, lock users
+    */
 	while(!endBank){
 		this->read_lock();
 		printf(CLEAR_SCREEN);
@@ -79,12 +88,10 @@ void Bank::print_all_accounts(){
 			Account* account = &(it->second);
 			account->write_lock();
 		}
-	//	this->bank_lock.enter_read();
 		cout << "Current Bank Status " << endl;
 		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++) {
 			Account* account = &(it->second);
 			account->print_account();
-//			cout << "456" << endl;
 		}
 		//FIXME maybe need to check map is sorted
 		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++){
@@ -122,18 +129,30 @@ void* take_comm(void* bank) {
 }
 
 void Bank::read_lock(){
+	/**
+     * @brief - lock function for read
+    */
 	if (DEBUG == 1) cout << "read lock bank" << endl;
 	this->bank_lock.enter_read();
 }
 void Bank::read_unlock(){
+	/**
+     * @brief - lock function for read
+    */
 	if (DEBUG == 1) cout << "read unlock bank" << endl;
 	this->bank_lock.leave_read();
 }
 void Bank::write_lock(){
+	/**
+     * @brief - lock function for write
+    */
 	if (DEBUG == 1) cout << "write lock bank" << endl;
 	this->bank_lock.enter_write();
 }
 void Bank::write_unlock(){
+	/**
+     * @brief - lock function for write
+    */
 	if (DEBUG == 1) cout << "write unlock bank" << endl;
 	this->bank_lock.leave_write();
 }

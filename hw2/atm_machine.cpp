@@ -57,7 +57,7 @@ bool ATM::write_log_if_password_not_match(int acc, int password){
 int ATM::run(){
 
     for (size_t i = 0; i < this->commands.size(); ++i) {
-    	usleep(100 * 1000);
+    	usleep(100 * 1000); // sleep 100ms between commands
 		std::vector <std::string> tempStr = splitString(commands[i], ' ');
 		std::string current_command;
 
@@ -104,11 +104,6 @@ int ATM::run(){
 
 }
 
-
-
-
-
-
 std::vector<std::string> splitString(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
     std::string::size_type start = 0;
@@ -128,6 +123,12 @@ std::vector<std::string> splitString(const std::string& str, char delimiter) {
 
 
 void ATM::open_account(int acc_num, int password, int balance){
+	/**
+     * @brief - open account
+     * @param acc - account id of the account
+     * @param password - password of the account
+     * @param balance - balance of the account
+    */
 	// open account on bank - need to lock bank for that because we are writing to bank
 	string msg;
 	bank->write_lock();
@@ -150,8 +151,14 @@ void ATM::open_account(int acc_num, int password, int balance){
 }
 
 int ATM::deposit (int acc_num, int password, int amount ){
-	//lock write for account - read for bank
-	//	when writing to account bank cant read or write - nobody can read/write to account
+	/**
+     * @brief - deposit for account
+     * lock write for account - read for bank
+     * when writing to account bank cant read or write - nobody can read/write to account
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+     * @param amount - amount we will deposit
+    */
 	bank->read_lock();
 	bool is_account = write_log_if_no_account(acc_num);
 
@@ -183,8 +190,15 @@ int ATM::deposit (int acc_num, int password, int amount ){
 }
 
 int ATM::withdraw (int acc_num, int password, int amount) {
-	//lock write for account - read for bank
-	//	when writing to account bank cant read or write - nobody can read/write to account
+	/**
+     * @brief - withdraw for account
+     * lock write for account - read for bank
+     * when writing to account bank cant read or write - nobody can read/write to account
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+     * @param amount - amount we will withdraw
+    */
+
 	if (amount<0){
 		return FAIL;
 	}
@@ -230,11 +244,15 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 
 }
 
-//TODO: need to lock account - lock account write mutex..
-// seems fine and I didnt see any lock need to check further
 int ATM::check_balance (int acc_num, int password){
-	//lock rad for account - read for bank
-	//	when reading to account everyone can still read (but no write)
+	/**
+     * @brief - check_balance for account
+     * lock rad for account - read for bank
+     * when reading to account everyone can still read (but no write)
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+    */
+
 	bank->read_lock();
 	bool is_account = write_log_if_no_account(acc_num);
 
@@ -266,12 +284,14 @@ int ATM::check_balance (int acc_num, int password){
 
 }
 
-//TODO: need to lock account because if moving amount the it is not good - lock account write+read mutex + bank_lock
-//TODO: check that actually erase and return answer if not...
-//need to think what to lock if we delete and someone already got user...
 int ATM::close_account (int acc_num, int password){
-	//lock bank, lock user somehow -
-	// we need that some time before deleting nobody will be able to enter it - write to bank is the option for it
+	/**
+     * @brief - close_account
+     * write lock bank
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+    */
+
 	bank->write_lock();
 
 	bool is_account = write_log_if_no_account(acc_num);
@@ -305,6 +325,14 @@ int ATM::close_account (int acc_num, int password){
 //TODO: need to lock account a from reading+writing+bank_lock and lock the other from reading - sort the locks by ids size (to avoid deadlock)
 // didnt have a lock or something but maybe
 int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
+	/**
+     * @brief - transfer
+     * read lock bank, lock accounts by their ids values
+     * @param source_acc - account id of the source account (withdraw from him)
+     * @param password - password for checking the source account
+     * @param dest_acc - target account to deposit the money
+     * @param amount - amount to transfer between accounts
+    */
 
 	if (amount<0 || source_acc == dest_acc){
 		return FAIL;
@@ -360,6 +388,13 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 
 
 void ATM::write_msg_to_log(string msg, bool is_error){
+	/**
+     * @brief - write_msg_to_log
+     * lock log
+     * @param msg - msg we will write to log
+     * @param is_error - indicate if the write is for error (for format issues)
+    */
+
 	pthread_mutex_lock(&(log_mutex));
 	log.open(log_file, std::ios::out | std::ios::app);
 	if(log.is_open()){
@@ -375,4 +410,3 @@ void ATM::write_msg_to_log(string msg, bool is_error){
 	pthread_mutex_unlock(&(log_mutex));
 }
 
-// percant - int - result - 2 digits after dot

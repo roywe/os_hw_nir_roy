@@ -26,7 +26,7 @@ public:
     Bank();
     ~Bank();
 
-    void lower_random_balance(); // it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
+    void lower_random_balance();
 	void read_lock();
 	void read_unlock();
 	void write_lock();
@@ -35,10 +35,6 @@ public:
 	void write_msg_to_log(string msg);
 	std::map<int, Account> accounts;
 	Account bank_account;
-	//mapping bank capabilities:
-	//print all account - in this state nobody can write to bank, anybody can keep reading
-	//lower_random_balance - in this state nobody can write or read to bank
-
 	ReadWriteLock bank_lock;
 
 //    std::map<std::int, std::vector<mutex_something> > locks; // first vector index will be reading, second for writing - we can also have the mutexes inside each account
