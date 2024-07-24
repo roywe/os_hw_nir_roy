@@ -13,7 +13,8 @@
 #include <pthread.h>
 #include <vector>
 #include <unistd.h>
-
+#include <string>
+using namespace std;
 extern std::ofstream log;
 //bank - can be an object inside atm machine or just a vector of accounts
 //bank should implement - show accounts , lower account balance, add account, add_balance_to_account, delete account, move accounts
@@ -31,7 +32,9 @@ public:
 	void write_lock();
 	void write_unlock();
     void print_all_accounts(); // it happened each 0.5 s  (locking all accounts) - we will need thread for this
-    std::map<int, Account> accounts;
+	void write_msg_to_log(string msg);
+	std::map<int, Account> accounts;
+	Account bank_account;
 	//mapping bank capabilities:
 	//print all account - in this state nobody can write to bank, anybody can keep reading
 	//lower_random_balance - in this state nobody can write or read to bank

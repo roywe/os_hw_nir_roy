@@ -47,28 +47,21 @@ bool ATM::write_log_if_password_not_match(int acc, int password){
      * @return false if no account, true if account exists
     */
 	if (bank->accounts[acc].get_password() != password) {
-//		string msg = "password is " + to_string(password);
 		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
 		write_msg_to_log(msg, true);
-//		msg = "acc password is : " + to_string(bank->accounts[acc].get_password());
-//		write_msg_to_log(msg, true);
 		return false;
 	}
 	return true;
 }
 
 int ATM::run(){
-//    size_t atm_command_index = 0;
-
 
     for (size_t i = 0; i < this->commands.size(); ++i) {
     	usleep(100 * 1000);
-//        std::cout <<"Num :" << i << " is: "<<commands[i] << endl;
 		std::vector <std::string> tempStr = splitString(commands[i], ' ');
 		std::string current_command;
 
 		string args[5] = {""};
-//	        string cmd = tempStr[0];
 		for (size_t j = 0; j < tempStr.size(); ++j) {
 			args[j] = tempStr[j];
 
@@ -382,13 +375,4 @@ void ATM::write_msg_to_log(string msg, bool is_error){
 	pthread_mutex_unlock(&(log_mutex));
 }
 
-// find add
-// invalidate acc
-// delete acc
-
-// כשאני מחזיק אותו שאף אחד לא יוכל בכלל למצוא אותו
-
-// טרם המחיקה
-
 // percant - int - result - 2 digits after dot
-// commission of the bank -
