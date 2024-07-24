@@ -22,7 +22,7 @@ public:
     int get_current_balance();
     void print_account() const;
     int withdrawn_by_per(float randomPer);
-    bool check_password(int other_password); //TODO: this action will be before all the other because found in 2 - 6
+    bool check_password(int other_password);
     void read_lock();
     void read_unlock();
     void write_lock();

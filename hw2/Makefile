@@ -2,6 +2,7 @@
 CC = g++ -g
 
 CFLAGS = -std=c++11 -Wall -Werror -pedantic-errors -DNDEBUG
+#LDFLAGS = -fsanitize=thread
 CCLINK = $(CC) -pthread
 TARGET = bank
 OBJS = bank.o atm_machine.o account.o read_write_lock.o
@@ -22,3 +23,7 @@ bank.o: bank.cpp bank.h
 clean:
 	$(RM) $(TARGET) *.o *~ "#"* core.*
 
+#-fsanitize=thread -pthread
+#LDFLAGS = -fsanitize=thread
+
+# -fsanitize=thread

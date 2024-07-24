@@ -4,12 +4,18 @@
 
 #include "bank.h"
 #include "atm_machine.h"
+#include <string>
 using namespace std;
 std::string log_file="log.txt";
 pthread_mutex_t log_mutex;
 #define DEBUG 0
+#define BANK_PASSWORD 0
+#define CLEAR_SCREEN "\033[2J"
+#define START_SCREEN "\033[1;1H"
+
 bool endBank =0;
 Bank::Bank(){
+	this->bank_account = Account(0, BANK_PASSWORD ,0);
 	this->bank_lock = ReadWriteLock();
 }
 
@@ -17,58 +23,86 @@ Bank::~Bank(){
 
 }
 
-//TODO: locks of the lower balance and print are not good for the log for example - need to check for atm
+
+void Bank::write_msg_to_log(string msg)
+{
+	/**
+     * @brief - write msg for the bank
+    */
+	pthread_mutex_unlock(&log_mutex);
+	log.open(log_file, std::ios::out | std::ios::app);
+	if(log.is_open()){
+		log << "Bank: " << msg << endl;
+	}
+	log.close();
+	pthread_mutex_unlock(&(log_mutex));
+}
+
+//TODO: print as they want
 void Bank::lower_random_balance(){
+	/**
+     * @brief - take commission from all bank users
+    */
 	while(!endBank){
 		//TODO: lock all the bank
 		this->read_lock();
-	//	this->bank_lock.enter_write();
 
 		std::srand(std::time(nullptr));
 		float randomPer = std::rand() % 5 + 1;
-	//    printf("per: %f was chosen",randomPer);
 		//FIXME maybe need to check map is sorted
-		for (auto& pair : this->accounts){
-			pair.second.write_lock();
+		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++){
+			Account* account = &(it->second);
+			account->write_lock();
 		}
-		for (auto& pair : this->accounts) {
-			int commission = pair.second.withdrawn_by_per(randomPer);
-			cout << "Bank: commissions of " <<  randomPer<< " % were charged, bank gained "<<commission << " from account "<< pair.first<<endl;
+		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++) {
+			Account* account = &(it->second);
+			int commission = account->withdrawn_by_per(randomPer);
+			this->bank_account.deposit(commission);
+			string msg = "commissions of " +  to_string(int(randomPer)) + " % were charged, bank gained " + to_string(commission) + " from account " + to_string(it->first);
+			this->write_msg_to_log(msg);
 		}
 		//FIXME maybe need to check map is sorted
-		for (auto& pair : this->accounts){
-			pair.second.write_unlock();
+		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++){
+			Account* account = &(it->second);
+			account->write_unlock();
 		}
 
 		this->read_unlock();
-	//	this->bank_lock.leave_write();
 		//TODO: Unlock all the bank
 		sleep(3); // sleep for 3 sec
 	}
 }
-// it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
 
+// it happened each 3 s  (locking all accounts) - we will need thread for this - should lock all accounts
+//TODO: print as they want
 void Bank::print_all_accounts(){
+	/**
+     * @brief - print bank accounts and the account of the bank, lock users
+    */
 	while(!endBank){
 		this->read_lock();
+		printf(CLEAR_SCREEN);
+		printf(START_SCREEN);
 		//FIXME maybe need to check map is sorted
-		for (auto& pair : this->accounts){
-			pair.second.read_lock();
+		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++){
+			Account* account = &(it->second);
+			account->write_lock();
 		}
-	//	this->bank_lock.enter_read();
 		cout << "Current Bank Status " << endl;
-		for (const auto& pair : this->accounts) {
-			pair.second.print_account();
-//			cout << "456" << endl;
+		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++) {
+			Account* account = &(it->second);
+			account->print_account();
 		}
 		//FIXME maybe need to check map is sorted
-		for (auto& pair : this->accounts){
-			pair.second.read_unlock();
+		for (auto it = this->accounts.begin() ; it != this->accounts.end() ; it++){
+			Account* account = &(it->second);
+			account->write_unlock();
 		}
+		int bank_balance = this->bank_account.get_current_balance();
+		cout << "The bank has " << bank_balance << " $\n";
+
 		this->read_unlock();
-	//	this->bank_lock.leave_read();
 		usleep(500 * 1000); // sleep for 0.5 sec
-//		sleep(6);
 	}
 } // it happened each 0.5 s  (locking all accounts) - we will need thread for this
 
@@ -86,7 +120,6 @@ void* print_wrap(void* bank) {
     Bank* bankPtr = static_cast<Bank*>(bank);
     bankPtr->print_all_accounts();
     pthread_exit(NULL);
-	//pthread_detach(pthread_self());
 }
 
 void* take_comm(void* bank) {
@@ -96,22 +129,33 @@ void* take_comm(void* bank) {
 }
 
 void Bank::read_lock(){
+	/**
+     * @brief - lock function for read
+    */
 	if (DEBUG == 1) cout << "read lock bank" << endl;
 	this->bank_lock.enter_read();
 }
 void Bank::read_unlock(){
+	/**
+     * @brief - lock function for read
+    */
 	if (DEBUG == 1) cout << "read unlock bank" << endl;
 	this->bank_lock.leave_read();
 }
 void Bank::write_lock(){
+	/**
+     * @brief - lock function for write
+    */
 	if (DEBUG == 1) cout << "write lock bank" << endl;
 	this->bank_lock.enter_write();
 }
 void Bank::write_unlock(){
+	/**
+     * @brief - lock function for write
+    */
 	if (DEBUG == 1) cout << "write unlock bank" << endl;
 	this->bank_lock.leave_write();
 }
-
 
 
 int main (int argc, char *argv[]) {
@@ -152,11 +196,9 @@ int main (int argc, char *argv[]) {
 	for (int i = 0; i<argc -1; ++i){
 		ATM atm =ATM(i,&bank,argv[i+1]);
 		atm_arr.push_back(atm);
-//		cout << "print here1" << endl;
 	}
 
 	for (int i = 0 ; i < argc-1 ; i++) {
-//		cout << "print here2" << endl;
 		if ( pthread_create(&atm_threads[i] , NULL ,work_wrap , &(atm_arr[i]) ) ){
 			perror("Bank error: pthread_create failed");
 			delete[] atm_threads;
@@ -175,21 +217,14 @@ int main (int argc, char *argv[]) {
 	}
 
 	for (int i = 0; i<argc -1; ++i){
-//		cout << "print here3" << endl;
 		pthread_join(atm_threads[i], NULL);
 	}
 	endBank =1;
 	pthread_join(comission_threads, NULL);
 	pthread_join(print_thread, NULL);
 
-//	cout << "print here" << endl;
-//	log<< "test" << endl;
-
-//    std::string atm_command_file = argv[1];
-//    ATM atm0 = ATM(0, bank, atm_command_file);
-//    atm0.run();
-//    log.close();
 	delete[] atm_threads;
 	return 0;
 
 }
+

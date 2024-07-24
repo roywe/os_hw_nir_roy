@@ -47,28 +47,21 @@ bool ATM::write_log_if_password_not_match(int acc, int password){
      * @return false if no account, true if account exists
     */
 	if (bank->accounts[acc].get_password() != password) {
-//		string msg = "password is " + to_string(password);
 		string msg = "Your transaction failed – password for account id " + to_string(acc) + " is incorrect";
 		write_msg_to_log(msg, true);
-//		msg = "acc password is : " + to_string(bank->accounts[acc].get_password());
-//		write_msg_to_log(msg, true);
 		return false;
 	}
 	return true;
 }
 
 int ATM::run(){
-//    size_t atm_command_index = 0;
-
 
     for (size_t i = 0; i < this->commands.size(); ++i) {
-    	usleep(100 * 1000);
-//        std::cout <<"Num :" << i << " is: "<<commands[i] << endl;
+    	usleep(100 * 1000); // sleep 100ms between commands
 		std::vector <std::string> tempStr = splitString(commands[i], ' ');
 		std::string current_command;
 
 		string args[5] = {""};
-//	        string cmd = tempStr[0];
 		for (size_t j = 0; j < tempStr.size(); ++j) {
 			args[j] = tempStr[j];
 
@@ -99,7 +92,7 @@ int ATM::run(){
 				int amount = atoi(args[4].c_str());
 				transfer(account_id, password, target_account, amount);
 			} else {
-				//TODO: we can assume that every command is legal by the question...
+				//we can assume that every command is legal by the question...
 				printf("%s", "wrong command");
 			}
 
@@ -110,11 +103,6 @@ int ATM::run(){
     return 1;
 
 }
-
-
-
-
-
 
 std::vector<std::string> splitString(const std::string& str, char delimiter) {
     std::vector<std::string> tokens;
@@ -135,10 +123,15 @@ std::vector<std::string> splitString(const std::string& str, char delimiter) {
 
 
 void ATM::open_account(int acc_num, int password, int balance){
-	// open account on bank - doesn't interupt anything
+	/**
+     * @brief - open account
+     * @param acc - account id of the account
+     * @param password - password of the account
+     * @param balance - balance of the account
+    */
+	// open account on bank - need to lock bank for that because we are writing to bank
 	string msg;
 	bank->write_lock();
-//	cout << "im here " << endl;
 	if(bank->accounts.find(acc_num) != bank->accounts.end()){
 
 		msg = "Your transaction failed – account with the same id exists";
@@ -157,12 +150,15 @@ void ATM::open_account(int acc_num, int password, int balance){
 
 }
 
-//TODO - locking the account id - lock account read+write mutex + bank_lock
-//TODO - seems fine but had problems - when putting 2 machines with same pass the logs become not good
-// it might be beacuse of the bank commissions
 int ATM::deposit (int acc_num, int password, int amount ){
-	//lock write for account
-	//	when writing to account bank cant read or write - nobody can write to account
+	/**
+     * @brief - deposit for account
+     * lock write for account - read for bank
+     * when writing to account bank cant read or write - nobody can read/write to account
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+     * @param amount - amount we will deposit
+    */
 	bank->read_lock();
 	bool is_account = write_log_if_no_account(acc_num);
 
@@ -185,7 +181,6 @@ int ATM::deposit (int acc_num, int password, int amount ){
 
 		string msg = "Account " + to_string(acc_num) + " new balance is " + to_string(current_balance) + " after " + to_string(amount) + "$ was deposited";
 		write_msg_to_log(msg, false);
-		//TODO: probably we can move some of the locks below before the logs
 		bank->accounts[acc_num].write_unlock();
 		bank->read_unlock();
 		if (DEBUG == 0) sleep(1);
@@ -194,10 +189,16 @@ int ATM::deposit (int acc_num, int password, int amount ){
 
 }
 
-//TODO - locking the account id - lock account read+write mutex + bank_lock
-// fix locking - has probelm for 2 threads
 int ATM::withdraw (int acc_num, int password, int amount) {
-	//lock write for account - withdraw - nobody can write to this account etc
+	/**
+     * @brief - withdraw for account
+     * lock write for account - read for bank
+     * when writing to account bank cant read or write - nobody can read/write to account
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+     * @param amount - amount we will withdraw
+    */
+
 	if (amount<0){
 		return FAIL;
 	}
@@ -222,7 +223,6 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 		bank->accounts[acc_num].write_lock();
 
 		int current_balance = bank->accounts[acc_num].withdrawn(amount);
-//		cout << "balance print  : " << current_balance << endl;
 		if(current_balance == -1){
 			msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
 			write_msg_to_log(msg, true);
@@ -244,9 +244,14 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 
 }
 
-//TODO: need to lock account - lock account write mutex..
-// seems fine and I didnt see any lock need to check further
 int ATM::check_balance (int acc_num, int password){
+	/**
+     * @brief - check_balance for account
+     * lock rad for account - read for bank
+     * when reading to account everyone can still read (but no write)
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+    */
 
 	bank->read_lock();
 	bool is_account = write_log_if_no_account(acc_num);
@@ -279,11 +284,14 @@ int ATM::check_balance (int acc_num, int password){
 
 }
 
-//TODO: need to lock account because if moving amount the it is not good - lock account write+read mutex + bank_lock
-//TODO: check that actually erase and return answer if not...
-//need to think what to lock if we delete and someone already got user...
 int ATM::close_account (int acc_num, int password){
-	//lock bank, lock user somehow
+	/**
+     * @brief - close_account
+     * write lock bank
+     * @param acc - account id of the account
+     * @param password - password for checking the account
+    */
+
 	bank->write_lock();
 
 	bool is_account = write_log_if_no_account(acc_num);
@@ -314,12 +322,17 @@ int ATM::close_account (int acc_num, int password){
 
 }
 
-//TODO:   implement lock_account_by_order() //is it before we get them or after... because they can be deleted - maybe adding anothe lock will help
-//getting 2 accounts and locking by account id, another option - get mapping and lock..
-//we need the find to be somehow atomic - maybe external lock will help for this case
 //TODO: need to lock account a from reading+writing+bank_lock and lock the other from reading - sort the locks by ids size (to avoid deadlock)
 // didnt have a lock or something but maybe
 int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
+	/**
+     * @brief - transfer
+     * read lock bank, lock accounts by their ids values
+     * @param source_acc - account id of the source account (withdraw from him)
+     * @param password - password for checking the source account
+     * @param dest_acc - target account to deposit the money
+     * @param amount - amount to transfer between accounts
+    */
 
 	if (amount<0 || source_acc == dest_acc){
 		return FAIL;
@@ -336,7 +349,6 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 		if (DEBUG == 0) sleep(1);
 		return FAIL;
 	}
-//	cout << " password is " << password << endl;
 	bool is_password = write_log_if_password_not_match(source_acc, password);
 	if(not is_password){
 		bank->read_unlock();
@@ -352,7 +364,6 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 	}
 
 	bank->accounts[source_acc].lock_ww_same_order(bank->accounts[dest_acc]);
-
 
 	int current_balance_a = bank->accounts[source_acc].withdrawn(amount);
 	if (current_balance_a == -1 ){
@@ -377,6 +388,13 @@ int ATM::transfer (int source_acc, int password,int dest_acc, int amount ){
 
 
 void ATM::write_msg_to_log(string msg, bool is_error){
+	/**
+     * @brief - write_msg_to_log
+     * lock log
+     * @param msg - msg we will write to log
+     * @param is_error - indicate if the write is for error (for format issues)
+    */
+
 	pthread_mutex_lock(&(log_mutex));
 	log.open(log_file, std::ios::out | std::ios::app);
 	if(log.is_open()){
@@ -392,13 +410,3 @@ void ATM::write_msg_to_log(string msg, bool is_error){
 	pthread_mutex_unlock(&(log_mutex));
 }
 
-// find add
-// invalidate acc
-// delete acc
-
-// כשאני מחזיק אותו שאף אחד לא יוכל בכלל למצוא אותו
-
-// טרם המחיקה
-
-// percant - int - result - 2 digits after dot
-// commission of the bank -

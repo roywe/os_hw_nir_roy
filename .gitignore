@@ -22,7 +22,8 @@ hw2/bank
 # Fortran module files
 *.mod
 *.smod
-
+hw2/tests/*
+hw2/test2/*
 # Compiled Static libraries
 *.lai
 *.la
