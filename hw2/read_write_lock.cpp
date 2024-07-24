@@ -3,7 +3,8 @@
 //
 
 #include "read_write_lock.h"
-
+#include <iostream>
+using namespace std;
 ReadWriteLock::ReadWriteLock(){
     this->rd_counter = 0;
     pthread_mutex_init(&this->read_mutex, nullptr);
@@ -24,8 +25,8 @@ void ReadWriteLock::enter_read(){
 
 void ReadWriteLock::leave_read(){
     //leave reader is the opposite of the enter one cause we need to unlock
-    pthread_mutex_lock(&this->read_mutex);
-    this->rd_counter--;
+	pthread_mutex_lock(&this->read_mutex);
+    this->rd_counter -= 1;
     if (rd_counter == 0){
         pthread_mutex_unlock(&this->write_mutex);
     }

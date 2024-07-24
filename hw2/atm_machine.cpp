@@ -220,7 +220,7 @@ int ATM::withdraw (int acc_num, int password, int amount) {
 			msg = "Your transaction failed – account id " + to_string(acc_num) + " balance is lower than " + to_string(amount);
 			write_msg_to_log(msg, true);
 			bank->accounts[acc_num].write_unlock();
-			bank->read_lock();
+			bank->read_unlock();
 			if (DEBUG == 0) sleep(1);
 			return FAIL;
 		}

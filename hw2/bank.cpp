@@ -45,7 +45,7 @@ void Bank::lower_random_balance(){
 		this->read_unlock();
 	//	this->bank_lock.leave_write();
 		//TODO: Unlock all the bank
-		usleep(30000 * 1000); // sleep for 3 sec
+		sleep(3); // sleep for 3 sec
 	}
 }
 
@@ -73,7 +73,8 @@ void Bank::print_all_accounts(){
 		}
 		this->read_unlock();
 	//	this->bank_lock.leave_read();
-		usleep(5000 * 1000); // sleep for 0.5 sec
+		usleep(500 * 1000); // sleep for 0.5 sec
+//		sleep(6);
 	}
 } // it happened each 0.5 s  (locking all accounts) - we will need thread for this
 
@@ -183,7 +184,6 @@ int main (int argc, char *argv[]) {
 //		cout << "print here3" << endl;
 		pthread_join(atm_threads[i], NULL);
 	}
-//	printf("finished atm");
 	endBank =1;
 	pthread_join(comission_threads, NULL);
 	pthread_join(print_thread, NULL);
