@@ -177,13 +177,13 @@ int main (int argc, char *argv[]) {
         file1_content.close();
     }
     if (file_corrupted){
-        std::cerr << "Error opening input file!" << std::endl;
+        std::cerr << "Bank error: illegal arguments" << std::endl;
         exit(1);
     }
     std::ofstream log;
     log.open(log_file);
 	if (!log) {
-		std::cerr << "Error opening file: " << log_file << std::endl;
+		std::cerr << "Bank error: log.open failed" << std::endl;
 		return 1;
 	}
 	log.close();
