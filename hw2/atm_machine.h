@@ -38,7 +38,6 @@ public :
 	void write_msg_to_log(string msg, bool is_error);
 	bool write_log_if_no_account(int acc);
 	bool write_log_if_password_not_match(int acc, int password);
-//    Bank bank;
 	Bank * bank;
     int atm_id;
     std::vector<std::string> commands;

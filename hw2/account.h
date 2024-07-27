@@ -29,8 +29,6 @@ public:
     void write_unlock();
 	void lock_ww_same_order(Account& other);
 	void unlock_ww_same_order(Account& other);
-//    pthread_mutex_t lock_write;
-//    pthread_mutex_t lock_read;
 
 private:
     int account_id;
@@ -38,10 +36,6 @@ private:
     int current_balance;
     ReadWriteLock rw_account;
 };
-//trade offs - if the account print so if it is lock for the action then we are consistent, but we cant do another action
-// if the atm print then the lock will be harder and maybe the print will not be fine
-// if the bank locks and print then maybe we can handle the lock perfectly
-
 
 
 #endif //OS_HW_NIR_ROY_ACCOUNT_H

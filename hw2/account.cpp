@@ -16,12 +16,6 @@ Account::Account(int account_id, int password, int current_balance){
     this->rw_account = ReadWriteLock();
 }
 
-//Account::Account(const Account& other){
-//    this->account_id = other.account_id;
-//    this->password = other.password;
-//    this->current_balance = other.current_balance;
-//}
-
 Account::~Account(){
 
 }
@@ -55,13 +49,13 @@ bool Account::check_password(int other_password){
 }
 
 int Account::withdrawn_by_per(float randomPer){
+	//we take random ppercantage, there is no way that after that we have result smaller then 0
     int commission = this->current_balance * randomPer/ 100;
     this->current_balance = this->current_balance - commission;
     return commission;
 }
 
 void Account::print_account() const{
-//	cout << " 123" <<endl;
     std::cout << "Account " << this->account_id << ": Balance - " << this->current_balance << " $, Account Password - "
               << ((this->password < 1000) ? "0" + std::to_string(this->password) : std::to_string(this->password)) << std::endl;
 }
