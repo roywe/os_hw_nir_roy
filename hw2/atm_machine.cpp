@@ -93,7 +93,7 @@ int ATM::run(){
 				transfer(account_id, password, target_account, amount);
 			} else {
 				//we can assume that every command is legal by the question...
-				printf("%s", "wrong command");
+				printf("%s", "");
 			}
 
 		}
