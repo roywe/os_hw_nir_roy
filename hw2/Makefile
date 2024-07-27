@@ -1,10 +1,8 @@
 # Makefile for the smash program
 CC = g++ -g
-
 CFLAGS = -std=c++11 -Wall -Werror -pedantic-errors -DNDEBUG
-#LDFLAGS = -fsanitize=thread
 CCLINK = $(CC) -pthread
-TARGET = bank
+TARGET = Bank
 OBJS = bank.o atm_machine.o account.o read_write_lock.o
 RM = rm -f
 # Creating the  executable
@@ -23,7 +21,5 @@ bank.o: bank.cpp bank.h
 clean:
 	$(RM) $(TARGET) *.o *~ "#"* core.*
 
-#-fsanitize=thread -pthread
+#-fsanitize=thread
 #LDFLAGS = -fsanitize=thread
-
-# -fsanitize=thread
