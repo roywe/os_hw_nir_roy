@@ -142,7 +142,7 @@ void ATM::open_account(int acc_num, int password, int balance){
 		return;
 	}
 	bank->accounts[acc_num] = Account(acc_num,password,balance);
-	msg = "New account id is " + to_string(acc_num) + " with password " + to_string(password) + " and initial balance " + to_string(balance);
+	msg = "New account id is " + to_string(acc_num) + " with password " + ((password < 1000) ? "0" + std::to_string(password) : std::to_string(password)) + " and initial balance " + to_string(balance);
 	write_msg_to_log(msg, false);
 	bank->write_unlock();
 	if (DEBUG == 0) sleep(1);

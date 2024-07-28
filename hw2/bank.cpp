@@ -184,7 +184,7 @@ int main (int argc, char *argv[]) {
     log.open(log_file);
 	if (!log) {
 		std::cerr << "Bank error: log.open failed" << std::endl;
-		return 1;
+        exit(1);
 	}
 	log.close();
 
@@ -202,18 +202,18 @@ int main (int argc, char *argv[]) {
 		if ( pthread_create(&atm_threads[i] , NULL ,work_wrap , &(atm_arr[i]) ) ){
 			perror("Bank error: pthread_create failed");
 			delete[] atm_threads;
-			return 1;
+	        exit(1);
 		}
 	}
 	if (pthread_create(&comission_threads, NULL, take_comm, &bank)){
 		perror("Bank error: pthread create failed");
 		delete[] atm_threads;
-		return 1;
+        exit(1);
 	}
 	if (pthread_create(&print_thread, NULL, print_wrap, &bank)){
 		perror("Bank error: pthread create failed");
 		delete[] atm_threads;
-		return 1;
+        exit(1);
 	}
 
 	for (int i = 0; i<argc -1; ++i){
@@ -224,7 +224,7 @@ int main (int argc, char *argv[]) {
 	pthread_join(print_thread, NULL);
 
 	delete[] atm_threads;
-	return 0;
+    exit(0);
 
 }
 
